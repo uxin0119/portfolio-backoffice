@@ -1,53 +1,74 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { StatusBadge, type StatusKey } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { api, won } from "@/lib/api";
 
-const KPIS = [
-  { label: "오늘 주문", value: "12", sub: "건" },
-  { label: "이번 달 매출", value: "₩4,820,000", sub: "" },
-  { label: "재고 부족 상품", value: "3", sub: "종" },
-  { label: "활성 거래처", value: "48", sub: "곳" },
-];
-
-const RECENT: { no: string; customer: string; amount: string; status: StatusKey }[] =
-  [
-    { no: "ORD-240601-007", customer: "김민수", amount: "₩128,000", status: "ACCEPTED" },
-    { no: "ORD-240601-006", customer: "이서연", amount: "₩54,000", status: "SHIPPED" },
-    { no: "ORD-240601-005", customer: "박지훈", amount: "₩312,000", status: "DONE" },
-    { no: "ORD-240601-004", customer: "최유진", amount: "₩47,500", status: "CANCELLED" },
-    { no: "ORD-240601-003", customer: "정하늘", amount: "₩89,000", status: "SHIPPED" },
-  ];
-
-const LOW_STOCK = [
-  { name: "친환경 수세미 3입", sku: "SKU-1042", qty: 4, safety: 20 },
-  { name: "스테인리스 빨대 세트", sku: "SKU-2210", qty: 7, safety: 15 },
-  { name: "면 행주 10매", sku: "SKU-0087", qty: 2, safety: 30 },
-];
+type Dashboard = {
+  kpi: {
+    todayOrders: number;
+    monthRevenue: number;
+    lowStockCount: number;
+    activeCustomers: number;
+  };
+  recentOrders: {
+    id: number;
+    orderNo: string;
+    customerName: string;
+    status: StatusKey;
+    totalAmount: number;
+  }[];
+  lowStock: {
+    id: number;
+    name: string;
+    sku: string;
+    stockQty: number;
+    safetyStock: number;
+  }[];
+};
 
 export default function DashboardPage() {
+  const [data, setData] = useState<Dashboard | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    api<Dashboard>("/api/dashboard")
+      .then(setData)
+      .catch((e) => setErr(String(e)));
+  }, []);
+
+  const kpis = [
+    { label: "오늘 주문", value: data ? `${data.kpi.todayOrders}` : "–", sub: "건" },
+    { label: "이번 달 매출", value: data ? won(data.kpi.monthRevenue) : "–", sub: "" },
+    { label: "재고 부족 상품", value: data ? `${data.kpi.lowStockCount}` : "–", sub: "종" },
+    { label: "활성 거래처", value: data ? `${data.kpi.activeCustomers}` : "–", sub: "곳" },
+  ];
+
   return (
     <AppShell>
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-fg">대시보드</h1>
-          <p className="mt-0.5 text-sm text-subtle">오늘의 운영 현황 요약</p>
-        </div>
-        <Button>+ 주문 등록</Button>
-      </div>
+      <PageHeader title="대시보드" desc="오늘의 운영 현황 요약" />
 
-      {/* KPI 카드 */}
+      {err && (
+        <Card className="mb-4 border-st-danger/40">
+          <CardBody className="text-sm text-st-danger">
+            데이터를 불러오지 못했습니다. 백엔드(8080) 실행 여부를 확인하세요.
+            <span className="block text-xs text-subtle">{err}</span>
+          </CardBody>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {KPIS.map((k) => (
+        {kpis.map((k) => (
           <Card key={k.label}>
             <CardBody>
               <p className="text-sm text-subtle">{k.label}</p>
               <p className="mt-2 text-2xl font-bold text-fg">
                 {k.value}
                 {k.sub && (
-                  <span className="ml-1 text-sm font-normal text-subtle">
-                    {k.sub}
-                  </span>
+                  <span className="ml-1 text-sm font-normal text-subtle">{k.sub}</span>
                 )}
               </p>
             </CardBody>
@@ -55,17 +76,9 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* 최근 주문 + 재고 부족 */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader
-            title="최근 주문"
-            action={
-              <Button variant="ghost" size="sm">
-                전체 보기
-              </Button>
-            }
-          />
+          <CardHeader title="최근 주문" />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -77,21 +90,17 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {RECENT.map((r) => (
-                  <tr
-                    key={r.no}
-                    className="border-b border-line last:border-0 hover:bg-surface-2"
-                  >
-                    <td className="px-5 py-3 font-medium text-fg">{r.no}</td>
-                    <td className="px-5 py-3 text-fg">{r.customer}</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-fg">
-                      {r.amount}
-                    </td>
-                    <td className="px-5 py-3">
-                      <StatusBadge status={r.status} />
-                    </td>
+                {data?.recentOrders.map((o) => (
+                  <tr key={o.id} className="border-b border-line last:border-0 hover:bg-surface-2">
+                    <td className="px-5 py-3 font-medium text-fg">{o.orderNo}</td>
+                    <td className="px-5 py-3 text-fg">{o.customerName}</td>
+                    <td className="px-5 py-3 text-right tabular-nums text-fg">{won(o.totalAmount)}</td>
+                    <td className="px-5 py-3"><StatusBadge status={o.status} /></td>
                   </tr>
                 ))}
+                {data && data.recentOrders.length === 0 && (
+                  <tr><td colSpan={4} className="px-5 py-8 text-center text-subtle">주문이 없습니다</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -100,27 +109,21 @@ export default function DashboardPage() {
         <Card>
           <CardHeader title="재고 부족" action={<StatusBadge status="LOW_STOCK" />} />
           <CardBody className="space-y-3">
-            {LOW_STOCK.map((p) => (
-              <div
-                key={p.sku}
-                className="flex items-center justify-between gap-3"
-              >
+            {data?.lowStock.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-fg">
-                    {p.name}
-                  </p>
+                  <p className="truncate text-sm font-medium text-fg">{p.name}</p>
                   <p className="text-xs text-subtle">{p.sku}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-st-danger tabular-nums">
-                    {p.qty}
-                  </p>
-                  <p className="text-xs text-subtle tabular-nums">
-                    안전 {p.safety}
-                  </p>
+                  <p className="text-sm font-semibold text-st-danger tabular-nums">{p.stockQty}</p>
+                  <p className="text-xs text-subtle tabular-nums">안전 {p.safetyStock}</p>
                 </div>
               </div>
             ))}
+            {data && data.lowStock.length === 0 && (
+              <p className="py-6 text-center text-sm text-subtle">부족 상품 없음</p>
+            )}
           </CardBody>
         </Card>
       </div>

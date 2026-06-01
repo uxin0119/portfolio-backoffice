@@ -1,0 +1,18 @@
+package com.uxin.backoffice.order;
+
+import java.time.LocalDate;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface OrderRepository extends JpaRepository<Order, Long> {
+
+  List<Order> findTop5ByOrderByIdDesc();
+
+  long countByOrderDate(LocalDate date);
+
+  @Query("select coalesce(sum(o.totalAmount), 0) from Order o "
+      + "where o.status <> 'CANCELLED' and o.orderDate >= :from")
+  long sumRevenueSince(@Param("from") LocalDate from);
+}
