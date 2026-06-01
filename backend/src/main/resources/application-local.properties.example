@@ -1,0 +1,10 @@
+# 로컬 개발용 DB 접속 정보 — 이 파일을 복사해서 application-local.properties 로 저장하고 값을 채우세요.
+# application-local.properties 는 .gitignore 처리됨(시크릿 커밋 금지).
+# 실행: ./gradlew bootRun --args='--spring.profiles.active=local'
+#
+# Supabase > Project Settings > Database > Connection string > JDBC 에서 확인.
+# 세션 모드(5432) 권장 — Flyway 마이그레이션과 호환.
+
+spring.datasource.url=jdbc:postgresql://aws-0-<REGION>.pooler.supabase.com:5432/postgres
+spring.datasource.username=postgres.<PROJECT_REF>
+spring.datasource.password=<YOUR_DB_PASSWORD>
