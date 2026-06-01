@@ -1,65 +1,129 @@
-import Image from "next/image";
+import { AppShell } from "@/components/app-shell";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { StatusBadge, type StatusKey } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
+const KPIS = [
+  { label: "오늘 주문", value: "12", sub: "건" },
+  { label: "이번 달 매출", value: "₩4,820,000", sub: "" },
+  { label: "재고 부족 상품", value: "3", sub: "종" },
+  { label: "활성 거래처", value: "48", sub: "곳" },
+];
+
+const RECENT: { no: string; customer: string; amount: string; status: StatusKey }[] =
+  [
+    { no: "ORD-240601-007", customer: "김민수", amount: "₩128,000", status: "ACCEPTED" },
+    { no: "ORD-240601-006", customer: "이서연", amount: "₩54,000", status: "SHIPPED" },
+    { no: "ORD-240601-005", customer: "박지훈", amount: "₩312,000", status: "DONE" },
+    { no: "ORD-240601-004", customer: "최유진", amount: "₩47,500", status: "CANCELLED" },
+    { no: "ORD-240601-003", customer: "정하늘", amount: "₩89,000", status: "SHIPPED" },
+  ];
+
+const LOW_STOCK = [
+  { name: "친환경 수세미 3입", sku: "SKU-1042", qty: 4, safety: 20 },
+  { name: "스테인리스 빨대 세트", sku: "SKU-2210", qty: 7, safety: 15 },
+  { name: "면 행주 10매", sku: "SKU-0087", qty: 2, safety: 30 },
+];
+
+export default function DashboardPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <AppShell>
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-fg">대시보드</h1>
+          <p className="mt-0.5 text-sm text-subtle">오늘의 운영 현황 요약</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <Button>+ 주문 등록</Button>
+      </div>
+
+      {/* KPI 카드 */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {KPIS.map((k) => (
+          <Card key={k.label}>
+            <CardBody>
+              <p className="text-sm text-subtle">{k.label}</p>
+              <p className="mt-2 text-2xl font-bold text-fg">
+                {k.value}
+                {k.sub && (
+                  <span className="ml-1 text-sm font-normal text-subtle">
+                    {k.sub}
+                  </span>
+                )}
+              </p>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+
+      {/* 최근 주문 + 재고 부족 */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader
+            title="최근 주문"
+            action={
+              <Button variant="ghost" size="sm">
+                전체 보기
+              </Button>
+            }
+          />
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-line text-left text-subtle">
+                  <th className="px-5 py-2.5 font-medium">주문번호</th>
+                  <th className="px-5 py-2.5 font-medium">고객</th>
+                  <th className="px-5 py-2.5 text-right font-medium">금액</th>
+                  <th className="px-5 py-2.5 font-medium">상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {RECENT.map((r) => (
+                  <tr
+                    key={r.no}
+                    className="border-b border-line last:border-0 hover:bg-surface-2"
+                  >
+                    <td className="px-5 py-3 font-medium text-fg">{r.no}</td>
+                    <td className="px-5 py-3 text-fg">{r.customer}</td>
+                    <td className="px-5 py-3 text-right tabular-nums text-fg">
+                      {r.amount}
+                    </td>
+                    <td className="px-5 py-3">
+                      <StatusBadge status={r.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="재고 부족" action={<StatusBadge status="LOW_STOCK" />} />
+          <CardBody className="space-y-3">
+            {LOW_STOCK.map((p) => (
+              <div
+                key={p.sku}
+                className="flex items-center justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-fg">
+                    {p.name}
+                  </p>
+                  <p className="text-xs text-subtle">{p.sku}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-st-danger tabular-nums">
+                    {p.qty}
+                  </p>
+                  <p className="text-xs text-subtle tabular-nums">
+                    안전 {p.safety}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      </div>
+    </AppShell>
   );
 }
