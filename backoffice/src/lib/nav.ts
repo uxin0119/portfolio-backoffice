@@ -12,4 +12,5 @@ export const NAV = [
   { href: "/customers", label: "거래처", Icon: IconCustomer },
   { href: "/orders", label: "주문", Icon: IconOrder },
   { href: "/inventory", label: "재고", Icon: IconInventory },
+  { href: "/members", label: "회원", Icon: IconCustomer },
 ] as const;

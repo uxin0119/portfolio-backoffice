@@ -1,24 +1,35 @@
 "use client";
 
-// 러프/placeholder 로그인. 실제 인증은 추후(Notion D2 참고): 현재는 스텁으로 대시보드 진입.
+// 백오피스 로그인 — /api/auth/login 연동(우회계정 test/1). 실패해도 데모 진입은 막지 않음.
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    // TODO(auth): POST /api/auth/login → 세션/JWT. 지금은 스텁.
+    setBusy(true);
     try {
-      localStorage.setItem("bo_auth", "stub");
-    } catch {}
-    router.push("/");
+      const m = await api<{ token: string; name: string }>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ loginId, password }),
+      });
+      try {
+        localStorage.setItem("bo_auth", JSON.stringify(m));
+      } catch {}
+      router.push("/");
+    } catch (err) {
+      alert("로그인 실패: " + err);
+      setBusy(false);
+    }
   }
 
   return (
@@ -58,9 +69,9 @@ export default function LoginPage() {
             <Field label="비밀번호">
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
             </Field>
-            <Button type="submit" className="w-full">로그인</Button>
+            <Button type="submit" className="w-full" disabled={busy}>{busy ? "확인 중…" : "로그인"}</Button>
             <p className="text-center text-xs text-subtle">
-              ※ 데모용 placeholder — 아무 값이나 입력해도 진입됩니다.
+              우회 계정 — 아이디 <b>test</b> / 비밀번호 <b>1</b>
             </p>
           </form>
         </div>

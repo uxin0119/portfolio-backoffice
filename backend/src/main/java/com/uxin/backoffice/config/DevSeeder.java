@@ -2,12 +2,15 @@ package com.uxin.backoffice.config;
 
 import com.uxin.backoffice.customer.Customer;
 import com.uxin.backoffice.customer.CustomerRepository;
+import com.uxin.backoffice.member.Member;
+import com.uxin.backoffice.member.MemberRepository;
 import com.uxin.backoffice.order.OrderService;
 import com.uxin.backoffice.product.Product;
 import com.uxin.backoffice.product.ProductRepository;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /** local 프로파일에서만 동작하는 데모 시드. 이미 데이터가 있으면 건너뜀. */
@@ -18,16 +21,23 @@ public class DevSeeder implements CommandLineRunner {
   private final ProductRepository productRepo;
   private final CustomerRepository customerRepo;
   private final OrderService orderService;
+  private final MemberRepository memberRepo;
+  private final PasswordEncoder encoder;
 
   public DevSeeder(
-      ProductRepository productRepo, CustomerRepository customerRepo, OrderService orderService) {
+      ProductRepository productRepo, CustomerRepository customerRepo, OrderService orderService,
+      MemberRepository memberRepo, PasswordEncoder encoder) {
     this.productRepo = productRepo;
     this.customerRepo = customerRepo;
     this.orderService = orderService;
+    this.memberRepo = memberRepo;
+    this.encoder = encoder;
   }
 
   @Override
   public void run(String... args) {
+    seedMembers(); // 상품 유무와 무관하게 계정 시드 (우회계정 test/1 포함)
+
     if (productRepo.count() > 0) return;
 
     Product p1 = product("SKU-1042", "친환경 수세미 3입", "주방", 3500, 4, 20);
@@ -69,5 +79,19 @@ public class DevSeeder implements CommandLineRunner {
     c.setContact(contact);
     c.setStatus("ACTIVE");
     return c;
+  }
+
+  private void seedMembers() {
+    if (memberRepo.count() > 0) return;
+    member("test", "1", "테스트");   // 로그인 우회용 계정 (id: test / pw: 1)
+    member("admin", "admin", "운영자");
+  }
+
+  private void member(String loginId, String password, String name) {
+    Member m = new Member();
+    m.setLoginId(loginId);
+    m.setPasswordHash(encoder.encode(password));
+    m.setName(name);
+    memberRepo.save(m);
   }
 }

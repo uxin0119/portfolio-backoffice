@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
+import { DataTable, type Column } from "@/components/ui/table";
 import { api } from "@/lib/api";
 
 type Customer = {
@@ -58,6 +59,14 @@ export default function CustomersPage() {
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  const columns: Column<Customer>[] = [
+    { key: "name", header: "이름", sortValue: (c) => c.name, render: (c) => <span className="font-medium text-fg">{c.name}</span> },
+    { key: "grade", header: "등급", sortValue: (c) => c.grade },
+    { key: "contact", header: "연락처", render: (c) => <span className="text-subtle">{c.contact ?? "-"}</span> },
+    { key: "status", header: "상태", render: (c) => <span className="text-subtle">{c.status}</span> },
+    { key: "actions", header: "", align: "right", render: (c) => <Button variant="ghost" size="sm" onClick={() => remove(c.id)}>삭제</Button> },
+  ];
+
   return (
     <AppShell>
       <PageHeader title="거래처" desc="고객(소비자/회원) 목록 및 등록" />
@@ -75,9 +84,7 @@ export default function CustomersPage() {
               </Select>
             </Field>
             <Field label="연락처"><Input value={form.contact} onChange={set("contact")} placeholder="010-0000-0000" /></Field>
-            <div className="sm:col-span-3">
-              <Button type="submit">+ 등록</Button>
-            </div>
+            <div className="sm:col-span-3"><Button type="submit">+ 등록</Button></div>
           </form>
         </CardBody>
       </Card>
@@ -93,35 +100,7 @@ export default function CustomersPage() {
 
       <Card>
         <CardHeader title={`거래처 목록 (${items.length})`} />
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-line text-left text-subtle">
-                <th className="px-5 py-2.5 font-medium">이름</th>
-                <th className="px-5 py-2.5 font-medium">등급</th>
-                <th className="px-5 py-2.5 font-medium">연락처</th>
-                <th className="px-5 py-2.5 font-medium">상태</th>
-                <th className="px-5 py-2.5 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((c) => (
-                <tr key={c.id} className="border-b border-line last:border-0 hover:bg-surface-2">
-                  <td className="px-5 py-3 font-medium text-fg">{c.name}</td>
-                  <td className="px-5 py-3 text-fg">{c.grade}</td>
-                  <td className="px-5 py-3 text-subtle">{c.contact ?? "-"}</td>
-                  <td className="px-5 py-3 text-subtle">{c.status}</td>
-                  <td className="px-5 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => remove(c.id)}>삭제</Button>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr><td colSpan={5} className="px-5 py-8 text-center text-subtle">거래처가 없습니다</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={items} rowKey={(c) => c.id} empty="거래처가 없습니다" />
       </Card>
     </AppShell>
   );

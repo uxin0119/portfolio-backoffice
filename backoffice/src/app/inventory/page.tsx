@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
+import { DataTable, type Column } from "@/components/ui/table";
 import { api } from "@/lib/api";
 
 type Tx = {
@@ -72,6 +73,15 @@ export default function InventoryPage() {
 
   const fmt = (s?: string) => (s ? s.replace("T", " ").slice(0, 16) : "-");
 
+  const columns: Column<Tx>[] = [
+    { key: "createdAt", header: "일시", sortValue: (t) => t.createdAt ?? "", render: (t) => <span className="tabular-nums text-subtle">{fmt(t.createdAt)}</span> },
+    { key: "productName", header: "상품", sortValue: (t) => t.productName },
+    { key: "type", header: "유형", render: (t) => <span className={t.type === "IN" ? "text-st-done" : "text-st-shipped"}>{t.type === "IN" ? "입고" : "출고"}</span> },
+    { key: "qty", header: "수량", align: "right", sortValue: (t) => t.qty },
+    { key: "refOrderId", header: "참조주문", render: (t) => <span className="text-subtle">{t.refOrderId ?? "-"}</span> },
+    { key: "memo", header: "메모", render: (t) => <span className="text-subtle">{t.memo ?? "-"}</span> },
+  ];
+
   return (
     <AppShell>
       <PageHeader title="재고" desc="입출고 등록 및 이력" />
@@ -94,9 +104,7 @@ export default function InventoryPage() {
             </Field>
             <Field label="수량"><Input type="number" min={1} value={form.qty} onChange={set("qty")} /></Field>
             <Field label="메모"><Input value={form.memo} onChange={set("memo")} /></Field>
-            <div className="sm:col-span-2 lg:col-span-4">
-              <Button type="submit">+ 등록</Button>
-            </div>
+            <div className="sm:col-span-2 lg:col-span-4"><Button type="submit">+ 등록</Button></div>
           </form>
         </CardBody>
       </Card>
@@ -112,39 +120,7 @@ export default function InventoryPage() {
 
       <Card>
         <CardHeader title={`입출고 이력 (${txs.length})`} />
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-line text-left text-subtle">
-                <th className="px-5 py-2.5 font-medium">일시</th>
-                <th className="px-5 py-2.5 font-medium">상품</th>
-                <th className="px-5 py-2.5 font-medium">유형</th>
-                <th className="px-5 py-2.5 text-right font-medium">수량</th>
-                <th className="px-5 py-2.5 font-medium">참조주문</th>
-                <th className="px-5 py-2.5 font-medium">메모</th>
-              </tr>
-            </thead>
-            <tbody>
-              {txs.map((t) => (
-                <tr key={t.id} className="border-b border-line last:border-0 hover:bg-surface-2">
-                  <td className="px-5 py-3 tabular-nums text-subtle">{fmt(t.createdAt)}</td>
-                  <td className="px-5 py-3 text-fg">{t.productName}</td>
-                  <td className="px-5 py-3">
-                    <span className={t.type === "IN" ? "text-st-done" : "text-st-shipped"}>
-                      {t.type === "IN" ? "입고" : "출고"}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-right tabular-nums text-fg">{t.qty}</td>
-                  <td className="px-5 py-3 text-subtle">{t.refOrderId ?? "-"}</td>
-                  <td className="px-5 py-3 text-subtle">{t.memo ?? "-"}</td>
-                </tr>
-              ))}
-              {txs.length === 0 && (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-subtle">이력이 없습니다</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={txs} rowKey={(t) => t.id} empty="이력이 없습니다" />
       </Card>
     </AppShell>
   );
