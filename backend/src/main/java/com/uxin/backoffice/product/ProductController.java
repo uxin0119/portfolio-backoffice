@@ -1,6 +1,7 @@
 package com.uxin.backoffice.product;
 
 import java.util.List;
+import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,9 +9,11 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
   private final ProductRepository repo;
+  private final ProductImageService imageService;
 
-  public ProductController(ProductRepository repo) {
+  public ProductController(ProductRepository repo, ProductImageService imageService) {
     this.repo = repo;
+    this.imageService = imageService;
   }
 
   public record ProductReq(
@@ -75,6 +78,20 @@ public class ProductController {
   @DeleteMapping("/{id}")
   public void delete(@PathVariable Long id) {
     repo.deleteById(id);
+  }
+
+  /** 아직 Supabase에 없는 상품 이미지를 생성→업로드→image_url 교체 (limit개). */
+  @PostMapping("/backfill-images")
+  public Map<String, Object> backfillImages(@RequestParam(defaultValue = "8") int limit) {
+    int attempted = 0, stored = 0, failed = 0;
+    for (Product p : repo.findAll()) {
+      if (attempted >= limit) break;
+      if (imageService.isStored(p)) continue;
+      attempted++;
+      if (imageService.storeToSupabase(p)) stored++;
+      else failed++;
+    }
+    return Map.of("attempted", attempted, "stored", stored, "failed", failed);
   }
 
   private void apply(Product p, ProductReq r) {
