@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { won } from "@/lib/api";
 import { Card, CardBody } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 
 export default function CartPage() {
   const { items, setQty, remove, total } = useCart();
@@ -49,9 +49,7 @@ export default function CartPage() {
             <span className="text-sm text-subtle">합계</span>
             <span className="text-lg font-bold tabular-nums text-fg">{won(total)}</span>
           </div>
-          <Link href="/checkout" className="block">
-            <Button className="w-full">주문하기</Button>
-          </Link>
+          <Link href="/checkout" className={buttonClass("primary", "md", "w-full")}>주문하기</Link>
         </div>
       )}
     </div>

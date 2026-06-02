@@ -6,7 +6,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 import { StatusBadge, type StatusKey } from "@/components/ui/badge";
 import { Select } from "@/components/ui/input";
 import { api, won } from "@/lib/api";
@@ -68,9 +68,7 @@ export default function OrderDetailPage() {
         title={order ? `주문 ${order.orderNo}` : "주문 상세"}
         desc="주문 항목 및 상태"
         action={
-          <Link href="/orders">
-            <Button variant="secondary" size="sm">← 목록으로</Button>
-          </Link>
+          <Link href="/orders" className={buttonClass("secondary", "sm")}>← 목록으로</Link>
         }
       />
 

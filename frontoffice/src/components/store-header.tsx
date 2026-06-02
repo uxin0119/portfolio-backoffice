@@ -22,7 +22,7 @@ export function StoreHeader() {
         {member ? (
           <div className="flex items-center gap-2 text-sm">
             <span className="hidden text-subtle sm:inline">{member.name}님</span>
-            <button onClick={logout} className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">로그아웃</button>
+            <button type="button" onClick={logout} className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">로그아웃</button>
           </div>
         ) : (
           <div className="flex items-center gap-1 text-sm">

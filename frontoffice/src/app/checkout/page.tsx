@@ -16,7 +16,7 @@ type CreatedOrder = { id: number; orderNo: string; totalAmount: number };
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, total, clear } = useCart();
+  const { items, total } = useCart();
   const { member } = useAuth();
   const [name, setName] = useState(member?.name ?? "");
   const [contact, setContact] = useState("");
@@ -51,7 +51,6 @@ export default function CheckoutPage() {
     setBusy(true);
     try {
       const order = await createOrder();
-      clear();
       const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
       const payment = tossPayments.payment({ customerKey: ANONYMOUS });
       await payment.requestPayment({
@@ -74,7 +73,6 @@ export default function CheckoutPage() {
     setBusy(true);
     try {
       const order = await createOrder();
-      clear();
       router.push(
         `/payment/success?orderId=${encodeURIComponent(order.orderNo)}&amount=${order.totalAmount}&paymentKey=demo`,
       );

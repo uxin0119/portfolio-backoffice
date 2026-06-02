@@ -4,10 +4,12 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { Button } from "@/components/ui/button";
+import { useCart } from "@/lib/cart";
+import { buttonClass } from "@/components/ui/button";
 
 function SuccessInner() {
   const sp = useSearchParams();
+  const { clear } = useCart();
   const [state, setState] = useState<"loading" | "ok" | "fail">("loading");
   const [msg, setMsg] = useState("");
   const orderId = sp.get("orderId");
@@ -22,11 +24,13 @@ function SuccessInner() {
       .then((r) => {
         setState("ok");
         setMsg(r.message ?? r.status);
+        clear(); // 결제 확정 후 장바구니 비움 (실패 시 장바구니 유지)
       })
       .catch((e) => {
         setState("fail");
         setMsg(String(e));
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp, orderId]);
 
   return (
@@ -46,7 +50,7 @@ function SuccessInner() {
           <p className="mt-2 text-sm text-subtle">{msg}</p>
         </>
       )}
-      <Link href="/" className="mt-6 inline-block"><Button variant="secondary">계속 쇼핑하기</Button></Link>
+      <Link href="/" className={buttonClass("secondary", "md", "mt-6")}>계속 쇼핑하기</Link>
     </div>
   );
 }

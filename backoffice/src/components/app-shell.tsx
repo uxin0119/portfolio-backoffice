@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { NAV } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -12,6 +12,14 @@ import { IconLogout, IconMenu } from "@/components/icons";
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  function logout() {
+    try {
+      localStorage.removeItem("bo_auth");
+    } catch {}
+    router.push("/login");
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -54,7 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-line p-3">
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-subtle transition-colors hover:bg-surface-2 hover:text-fg">
+          <button type="button" onClick={logout} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-subtle transition-colors hover:bg-surface-2 hover:text-fg">
             <IconLogout className="h-[18px] w-[18px]" />
             로그아웃
           </button>

@@ -63,6 +63,14 @@ export function DataTable<T>({ columns, data, rowKey, onRowClick, empty = "데�
                     c.sortValue && "cursor-pointer select-none hover:text-fg",
                   )}
                   onClick={() => c.sortValue && toggleSort(c.key)}
+                  onKeyDown={(e) => {
+                    if (c.sortValue && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                      toggleSort(c.key);
+                    }
+                  }}
+                  role={c.sortValue ? "button" : undefined}
+                  tabIndex={c.sortValue ? 0 : undefined}
                 >
                   {c.header}
                   {sort?.key === c.key && (sort.dir === 1 ? " ▲" : " ▼")}

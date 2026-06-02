@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 
 function FailInner() {
   const sp = useSearchParams();
@@ -13,7 +13,7 @@ function FailInner() {
       <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-st-danger-bg text-2xl text-st-danger">!</div>
       <h1 className="text-xl font-bold text-fg">결제 실패</h1>
       <p className="mt-2 text-sm text-subtle">{message}</p>
-      <Link href="/cart" className="mt-6 inline-block"><Button variant="secondary">장바구니로 돌아가기</Button></Link>
+      <Link href="/cart" className={buttonClass("secondary", "md", "mt-6")}>장바구니로 돌아가기</Link>
     </div>
   );
 }
