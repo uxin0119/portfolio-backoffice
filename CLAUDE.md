@@ -4,8 +4,8 @@
 > 포트폴리오 자산 (크몽 외주 어필용 — 신규 전문가의 실력 직접 증명). 가상 도메인이라 NDA 안전.
 > 사양 원본: Notion `📐 spec: portfolio-backoffice v1` (2026-06-01 확정, 도메인은 B2C로 조정).
 >
-> 표시명: 프론트엔드 "포트폴리오 백오피스 프론트엔드" · 백엔드 "포트폴리오 백오피스 백엔드"
-> (npm/Gradle 아티팩트는 슬러그 `portfolio-backoffice-frontend` / `portfolio-backoffice-backend`)
+> 패키지(폴더): `backend` (공유 API) · `backoffice` (관리자) · `frontoffice` (소비자)
+> (Gradle 아티팩트는 `portfolio-backoffice-backend`)
 
 ## 시그니처
 
@@ -37,20 +37,20 @@
 | 인증 | 자체 Spring Security, 단일 운영자 (JWT 또는 세션) |
 | DB | Supabase (managed PostgreSQL, **신규 전용 프로젝트** — 생활비계산기와 분리) |
 | 배포 | 프론트 Vercel · 백엔드 Railway |
-| 리포 | 모노레포 단일 GitHub repo (`/backend`, `/frontend`) |
+| 리포 | 모노레포 단일 GitHub repo (`/backend`, `/backoffice`, `/frontoffice`) |
 
 ## 구조
 
 ```
 portfolio-backoffice/
 ├── backend/          Spring Boot (Java 23, Gradle) — 공유 API (포트 8080)
-├── frontend/         Next.js — 백오피스(관리자) UI (포트 3000)
+├── backoffice/       Next.js — 백오피스(관리자) UI (포트 3000)
 ├── frontoffice/      Next.js — 프론트오피스(소비자) 스토어프론트 (포트 3001)
 ├── _archive/         이전 예약관리 SaaS 설계 (폐기, 참고용 보관)
 └── CLAUDE.md
 ```
 
-- **백엔드 1개를 frontend·frontoffice가 공유**한다. CORS: localhost:3000·3001 허용.
+- **백엔드 1개를 backoffice·frontoffice가 공유**한다. CORS: localhost:3000·3001 허용.
 - 프론트오피스 스코프(러프): 카탈로그 + 장바구니(localStorage) + 주문(체크아웃 시 customer+order 생성). 기존 `/api` 재사용.
 - 디자인 토큰·`lib/cn`·`lib/api`·`ui/*`는 두 프론트가 동일 패턴 공유(현재는 복사). 추후 공통 패키지로 추출 가능.
 

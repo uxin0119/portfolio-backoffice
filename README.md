@@ -23,8 +23,9 @@
 ## 구조
 
 ```
-backend/    Spring Boot
-frontend/   Next.js
+backend/      Spring Boot — 공유 API
+backoffice/   Next.js — 관리자 백오피스
+frontoffice/  Next.js — 소비자 스토어프론트
 ```
 
 ## 라이선스
