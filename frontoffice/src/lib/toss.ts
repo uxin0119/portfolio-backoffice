@@ -1,4 +1,4 @@
-// 토스페이먼츠 클라이언트 키. 기본값은 공개 문서용 테스트 키.
-// 실제 데모는 본인 Toss 대시보드의 test client key를 NEXT_PUBLIC_TOSS_CLIENT_KEY로 설정 권장.
+// 토스페이먼츠 결제창(API 개별 연동) 클라이언트 키. 기본값은 공개 문서용 테스트 키.
+// 실제 데모는 본인 "API 개별 연동 키(테스트)" test_ck_... 를 NEXT_PUBLIC_TOSS_CLIENT_KEY로 설정.
 export const TOSS_CLIENT_KEY =
   process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? "test_ck_docs_Ovk5rk1EwkEbP0W43n07xlzm";

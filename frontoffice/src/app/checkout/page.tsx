@@ -45,7 +45,7 @@ export default function CheckoutPage() {
     });
   }
 
-  // 토스페이먼츠 결제창
+  // 토스페이먼츠 결제창 (API 개별 연동)
   async function payToss() {
     if (!validate()) return;
     setBusy(true);
@@ -60,6 +60,7 @@ export default function CheckoutPage() {
         orderName: items[0].name + (items.length > 1 ? ` 외 ${items.length - 1}건` : ""),
         successUrl: window.location.origin + "/payment/success",
         failUrl: window.location.origin + "/payment/fail",
+        customerName: name,
       });
     } catch (err) {
       alert("결제 시작 실패: " + err);
@@ -67,7 +68,7 @@ export default function CheckoutPage() {
     }
   }
 
-  // 데모 간편결제(토스 키 없이도 흐름 완료)
+  // 데모 간편결제 (토스 키 없이도 흐름 완료)
   async function payDemo() {
     if (!validate()) return;
     setBusy(true);
@@ -128,7 +129,7 @@ export default function CheckoutPage() {
           데모 간편결제 (토스 키 없이)
         </Button>
         <p className="text-center text-xs text-subtle">
-          토스 결제는 본인 test client key가 필요합니다(미설정 시 데모 간편결제 이용).
+          토스 결제창(API 개별 연동) 방식. 미설정 시 데모 간편결제 이용.
         </p>
       </div>
     </div>
