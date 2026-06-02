@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -156,7 +157,9 @@ export default function OrdersPage() {
             <tbody>
               {orders.map((o) => (
                 <tr key={o.id} className="border-b border-line last:border-0 hover:bg-surface-2">
-                  <td className="px-5 py-3 font-medium text-fg">{o.orderNo}</td>
+                  <td className="px-5 py-3 font-medium">
+                    <Link href={`/orders/${o.id}`} className="text-primary hover:underline">{o.orderNo}</Link>
+                  </td>
                   <td className="px-5 py-3 text-fg">{o.customerName}</td>
                   <td className="px-5 py-3 text-right tabular-nums text-fg">{won(o.totalAmount)}</td>
                   <td className="px-5 py-3 text-right tabular-nums text-subtle">{o.itemCount}</td>

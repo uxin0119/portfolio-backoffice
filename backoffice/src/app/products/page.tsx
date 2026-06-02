@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/badge";
 import { Field, Input } from "@/components/ui/input";
+import { DataTable, type Column } from "@/components/ui/table";
 import { api, won } from "@/lib/api";
 
 type Product = {
@@ -70,6 +71,23 @@ export default function ProductsPage() {
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  const columns: Column<Product>[] = [
+    { key: "sku", header: "SKU", sortValue: (p) => p.sku, render: (p) => <span className="font-medium text-fg">{p.sku}</span> },
+    { key: "name", header: "상품명", sortValue: (p) => p.name },
+    { key: "category", header: "카테고리", render: (p) => <span className="text-subtle">{p.category ?? "-"}</span> },
+    { key: "basePrice", header: "기준가", align: "right", sortValue: (p) => p.basePrice, render: (p) => won(p.basePrice) },
+    {
+      key: "stock", header: "재고/안전", align: "right", sortValue: (p) => p.stockQty,
+      render: (p) => (
+        <span className="inline-flex items-center justify-end gap-2">
+          <span className="tabular-nums">{p.stockQty} / {p.safetyStock}</span>
+          {p.lowStock && <StatusBadge status="LOW_STOCK" />}
+        </span>
+      ),
+    },
+    { key: "actions", header: "", align: "right", render: (p) => <Button variant="ghost" size="sm" onClick={() => remove(p.id)}>삭제</Button> },
+  ];
+
   return (
     <AppShell>
       <PageHeader title="상품" desc="재고 상품 목록 및 등록" />
@@ -102,42 +120,7 @@ export default function ProductsPage() {
 
       <Card>
         <CardHeader title={`상품 목록 (${items.length})`} />
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-line text-left text-subtle">
-                <th className="px-5 py-2.5 font-medium">SKU</th>
-                <th className="px-5 py-2.5 font-medium">상품명</th>
-                <th className="px-5 py-2.5 font-medium">카테고리</th>
-                <th className="px-5 py-2.5 text-right font-medium">기준가</th>
-                <th className="px-5 py-2.5 text-right font-medium">재고 / 안전</th>
-                <th className="px-5 py-2.5 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((p) => (
-                <tr key={p.id} className="border-b border-line last:border-0 hover:bg-surface-2">
-                  <td className="px-5 py-3 font-medium text-fg">{p.sku}</td>
-                  <td className="px-5 py-3 text-fg">{p.name}</td>
-                  <td className="px-5 py-3 text-subtle">{p.category ?? "-"}</td>
-                  <td className="px-5 py-3 text-right tabular-nums text-fg">{won(p.basePrice)}</td>
-                  <td className="px-5 py-3 text-right">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="tabular-nums text-fg">{p.stockQty} / {p.safetyStock}</span>
-                      {p.lowStock && <StatusBadge status="LOW_STOCK" />}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => remove(p.id)}>삭제</Button>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-subtle">상품이 없습니다</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={items} rowKey={(p) => p.id} empty="상품이 없습니다" />
       </Card>
     </AppShell>
   );
