@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { won } from "@/lib/api";
+import { productImageUrl } from "@/lib/img";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button, buttonClass } from "@/components/ui/button";
 
@@ -25,7 +26,13 @@ export default function CartPage() {
           {items.map((it) => (
             <Card key={it.productId}>
               <CardBody className="flex items-center gap-3">
-                <div className="h-14 w-14 shrink-0 rounded-lg bg-surface-2" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={it.imageUrl || productImageUrl(it.name, it.productId)}
+                  alt={it.name}
+                  loading="lazy"
+                  className="h-14 w-14 shrink-0 rounded-lg bg-surface-2 object-cover"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-fg">{it.name}</p>
                   <p className="text-sm tabular-nums text-subtle">{won(it.price)}</p>

@@ -37,6 +37,9 @@ public class Product {
   @Column(nullable = false)
   private String status = "ACTIVE";
 
+  @Column(name = "image_url")
+  private String imageUrl;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 

@@ -20,7 +20,8 @@ public class ProductController {
       Integer basePrice,
       Integer stockQty,
       Integer safetyStock,
-      String status) {}
+      String status,
+      String imageUrl) {}
 
   public record ProductRes(
       Long id,
@@ -31,12 +32,13 @@ public class ProductController {
       int stockQty,
       int safetyStock,
       String status,
+      String imageUrl,
       boolean lowStock) {
     static ProductRes of(Product p) {
       return new ProductRes(
           p.getId(), p.getSku(), p.getName(), p.getCategory(),
           p.getBasePrice(), p.getStockQty(), p.getSafetyStock(),
-          p.getStatus(), p.getStockQty() < p.getSafetyStock());
+          p.getStatus(), p.getImageUrl(), p.getStockQty() < p.getSafetyStock());
     }
   }
 
@@ -57,6 +59,9 @@ public class ProductController {
   public ProductRes create(@RequestBody ProductReq r) {
     Product p = new Product();
     apply(p, r);
+    if (p.getImageUrl() == null || p.getImageUrl().isBlank()) {
+      p.setImageUrl(ProductImages.imageFor(p.getName(), p.getSku() == null ? 0 : p.getSku().hashCode()));
+    }
     return ProductRes.of(repo.save(p));
   }
 
@@ -80,5 +85,6 @@ public class ProductController {
     if (r.stockQty() != null) p.setStockQty(r.stockQty());
     if (r.safetyStock() != null) p.setSafetyStock(r.safetyStock());
     if (r.status() != null) p.setStatus(r.status());
+    if (r.imageUrl() != null) p.setImageUrl(r.imageUrl());
   }
 }

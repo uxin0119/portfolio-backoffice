@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, won } from "@/lib/api";
+import { productImageUrl } from "@/lib/img";
 import { useCart } from "@/lib/cart";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ type Product = {
   basePrice: number;
   stockQty: number;
   status: string;
+  imageUrl?: string;
 };
 
 export default function Catalog() {
@@ -42,7 +44,15 @@ export default function Catalog() {
           const sold = p.stockQty <= 0;
           return (
             <Card key={p.id} className="flex flex-col overflow-hidden">
-              <div className="aspect-square bg-surface-2" />
+              <div className="aspect-square overflow-hidden bg-surface-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.imageUrl || productImageUrl(p.name, p.id)}
+                  alt={p.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <CardBody className="flex flex-1 flex-col gap-2">
                 <div className="flex-1">
                   <p className="text-xs text-subtle">{p.category ?? ""}</p>
@@ -52,7 +62,14 @@ export default function Catalog() {
                 <Button
                   size="sm"
                   disabled={sold}
-                  onClick={() => add({ productId: p.id, name: p.name, price: p.basePrice })}
+                  onClick={() =>
+                    add({
+                      productId: p.id,
+                      name: p.name,
+                      price: p.basePrice,
+                      imageUrl: p.imageUrl || productImageUrl(p.name, p.id),
+                    })
+                  }
                 >
                   {sold ? "품절" : "담기"}
                 </Button>

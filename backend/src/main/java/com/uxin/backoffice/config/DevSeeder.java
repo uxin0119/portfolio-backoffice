@@ -6,7 +6,9 @@ import com.uxin.backoffice.member.Member;
 import com.uxin.backoffice.member.MemberRepository;
 import com.uxin.backoffice.order.OrderService;
 import com.uxin.backoffice.product.Product;
+import com.uxin.backoffice.product.ProductImages;
 import com.uxin.backoffice.product.ProductRepository;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -37,6 +39,7 @@ public class DevSeeder implements CommandLineRunner {
   @Override
   public void run(String... args) {
     seedMembers(); // 상품 유무와 무관하게 계정 시드 (우회계정 test/1 포함)
+    backfillProductImages(); // image_url 비어있는 기존 상품에 AI 이미지 URL 백필
 
     if (productRepo.count() > 0) return;
 
@@ -69,7 +72,19 @@ public class DevSeeder implements CommandLineRunner {
     p.setStockQty(stock);
     p.setSafetyStock(safety);
     p.setStatus("ACTIVE");
+    p.setImageUrl(ProductImages.imageFor(name, sku.hashCode()));
     return p;
+  }
+
+  private void backfillProductImages() {
+    List<Product> toUpdate = new ArrayList<>();
+    for (Product p : productRepo.findAll()) {
+      if (p.getImageUrl() == null || p.getImageUrl().isBlank()) {
+        p.setImageUrl(ProductImages.imageFor(p.getName(), p.getSku() == null ? 0 : p.getSku().hashCode()));
+        toUpdate.add(p);
+      }
+    }
+    if (!toUpdate.isEmpty()) productRepo.saveAll(toUpdate);
   }
 
   private Customer customer(String name, String grade, String contact) {

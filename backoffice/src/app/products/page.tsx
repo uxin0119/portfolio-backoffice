@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Field, Input } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
 import { api, won } from "@/lib/api";
+import { productImageUrl } from "@/lib/img";
 
 type Product = {
   id: number;
@@ -19,6 +20,7 @@ type Product = {
   stockQty: number;
   safetyStock: number;
   status: string;
+  imageUrl?: string;
   lowStock: boolean;
 };
 
@@ -92,6 +94,18 @@ export default function ProductsPage() {
   }
 
   const columns: Column<Product>[] = [
+    {
+      key: "image", header: "",
+      render: (p) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={p.imageUrl || productImageUrl(p.name, p.id)}
+          alt={p.name}
+          loading="lazy"
+          className="h-9 w-9 rounded-md bg-surface-2 object-cover"
+        />
+      ),
+    },
     { key: "sku", header: "SKU", sortValue: (p) => p.sku, render: (p) => <span className="font-medium text-fg">{p.sku}</span> },
     { key: "name", header: "상품명", sortValue: (p) => p.name },
     { key: "category", header: "카테고리", render: (p) => <span className="text-subtle">{p.category ?? "-"}</span> },
