@@ -54,13 +54,14 @@ portfolio-backoffice/
 - 프론트오피스 스코프(러프): 카탈로그 + 장바구니(localStorage) + 주문(체크아웃 시 customer+order 생성). 기존 `/api` 재사용.
 - 디자인 토큰·`lib/cn`·`lib/api`·`ui/*`는 두 프론트가 동일 패턴 공유(현재는 복사). 추후 공통 패키지로 추출 가능.
 
-## 데이터 모델 (8테이블 → v1은 차등단가/정산 제외하여 6)
+## 데이터 모델 (현재 테이블)
 
-- `user` (단일 운영자) · `product` (sku, base_price, stock_qty, safety_stock)
+- `product` (sku, base_price, stock_qty, safety_stock, image_url)
 - `customer` (소비자/회원 — name, grade 일반/우수/VIP 멤버십 라벨, contact)
-- `order` (order_no, customer_id, status, order_date, total_amount)
+- `orders` (order_no, customer_id, status, order_date, total_amount)
 - `order_item` (order_id, product_id, qty, unit_price=기준가, line_amount)
 - `inventory_tx` (product_id, type IN/OUT, qty, ref_order_id, memo)
+- `member` (login_id, password_hash, name) — 인증/계정 (운영자·소비자 공용). app_user는 미사용이라 V4에서 제거됨.
 
 상태머신: order.status `ACCEPTED → SHIPPED → DONE` (+ `CANCELLED`).
 
