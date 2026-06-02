@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -24,22 +24,11 @@ type Product = {
 
 const EMPTY = { sku: "", name: "", category: "", basePrice: "", stockQty: "", safetyStock: "" };
 
-export default function ProductsPage() {
-  const [items, setItems] = useState<Product[]>([]);
-  const [err, setErr] = useState<string | null>(null);
+// 폼을 분리 → 키 입력이 큰 목록(DataTable)을 리렌더하지 않음
+function ProductForm({ onCreated }: { onCreated: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
-
-  async function load() {
-    try {
-      setItems(await api<Product[]>("/api/products"));
-      setErr(null);
-    } catch (e) {
-      setErr(String(e));
-    }
-  }
-  useEffect(() => {
-    load();
-  }, []);
+  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function create(e: FormEvent) {
     e.preventDefault();
@@ -56,20 +45,51 @@ export default function ProductsPage() {
         }),
       });
       setForm({ ...EMPTY });
-      load();
+      onCreated();
     } catch (e) {
       alert("등록 실패: " + e);
     }
   }
+
+  return (
+    <Card className="mb-4">
+      <CardHeader title="상품 등록" />
+      <CardBody>
+        <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Field label="SKU"><Input value={form.sku} onChange={set("sku")} required /></Field>
+          <Field label="상품명"><Input value={form.name} onChange={set("name")} required /></Field>
+          <Field label="카테고리"><Input value={form.category} onChange={set("category")} /></Field>
+          <Field label="기준가(원)"><Input type="number" value={form.basePrice} onChange={set("basePrice")} /></Field>
+          <Field label="재고수량"><Input type="number" value={form.stockQty} onChange={set("stockQty")} /></Field>
+          <Field label="안전재고"><Input type="number" value={form.safetyStock} onChange={set("safetyStock")} /></Field>
+          <div className="sm:col-span-2 lg:col-span-3"><Button type="submit">+ 등록</Button></div>
+        </form>
+      </CardBody>
+    </Card>
+  );
+}
+
+export default function ProductsPage() {
+  const [items, setItems] = useState<Product[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api<Product[]>("/api/products"));
+      setErr(null);
+    } catch (e) {
+      setErr(String(e));
+    }
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function remove(id: number) {
     if (!confirm("삭제할까요?")) return;
     await api(`/api/products/${id}`, { method: "DELETE" });
     load();
   }
-
-  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const columns: Column<Product>[] = [
     { key: "sku", header: "SKU", sortValue: (p) => p.sku, render: (p) => <span className="font-medium text-fg">{p.sku}</span> },
@@ -92,22 +112,7 @@ export default function ProductsPage() {
     <AppShell>
       <PageHeader title="상품" desc="재고 상품 목록 및 등록" />
 
-      <Card className="mb-4">
-        <CardHeader title="상품 등록" />
-        <CardBody>
-          <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Field label="SKU"><Input value={form.sku} onChange={set("sku")} required /></Field>
-            <Field label="상품명"><Input value={form.name} onChange={set("name")} required /></Field>
-            <Field label="카테고리"><Input value={form.category} onChange={set("category")} /></Field>
-            <Field label="기준가(원)"><Input type="number" value={form.basePrice} onChange={set("basePrice")} /></Field>
-            <Field label="재고수량"><Input type="number" value={form.stockQty} onChange={set("stockQty")} /></Field>
-            <Field label="안전재고"><Input type="number" value={form.safetyStock} onChange={set("safetyStock")} /></Field>
-            <div className="sm:col-span-2 lg:col-span-3">
-              <Button type="submit">+ 등록</Button>
-            </div>
-          </form>
-        </CardBody>
-      </Card>
+      <ProductForm onCreated={load} />
 
       {err && (
         <Card className="mb-4 border-st-danger/40">

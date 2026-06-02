@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -22,28 +22,10 @@ type Product = { id: number; name: string };
 
 const EMPTY = { productId: "", type: "IN", qty: "", memo: "" };
 
-export default function InventoryPage() {
-  const [txs, setTxs] = useState<Tx[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [err, setErr] = useState<string | null>(null);
+function InventoryForm({ products, onCreated }: { products: Product[]; onCreated: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
-
-  async function load() {
-    try {
-      const [t, p] = await Promise.all([
-        api<Tx[]>("/api/inventory"),
-        api<Product[]>("/api/products"),
-      ]);
-      setTxs(t);
-      setProducts(p);
-      setErr(null);
-    } catch (e) {
-      setErr(String(e));
-    }
-  }
-  useEffect(() => {
-    load();
-  }, []);
+  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function adjust(e: FormEvent) {
     e.preventDefault();
@@ -62,14 +44,59 @@ export default function InventoryPage() {
         }),
       });
       setForm({ ...EMPTY });
-      load();
+      onCreated();
     } catch (e) {
       alert("입출고 실패(재고 부족 등): " + e);
     }
   }
 
-  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
+  return (
+    <Card className="mb-4">
+      <CardHeader title="입출고 등록" />
+      <CardBody>
+        <form onSubmit={adjust} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Field label="상품">
+            <Select value={form.productId} onChange={set("productId")} required>
+              <option value="">상품 선택</option>
+              {products.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+            </Select>
+          </Field>
+          <Field label="유형">
+            <Select value={form.type} onChange={set("type")}>
+              <option value="IN">입고(IN)</option>
+              <option value="OUT">출고(OUT)</option>
+            </Select>
+          </Field>
+          <Field label="수량"><Input type="number" min={1} value={form.qty} onChange={set("qty")} /></Field>
+          <Field label="메모"><Input value={form.memo} onChange={set("memo")} /></Field>
+          <div className="sm:col-span-2 lg:col-span-4"><Button type="submit">+ 등록</Button></div>
+        </form>
+      </CardBody>
+    </Card>
+  );
+}
+
+export default function InventoryPage() {
+  const [txs, setTxs] = useState<Tx[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const [t, p] = await Promise.all([
+        api<Tx[]>("/api/inventory"),
+        api<Product[]>("/api/products"),
+      ]);
+      setTxs(t);
+      setProducts(p);
+      setErr(null);
+    } catch (e) {
+      setErr(String(e));
+    }
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const fmt = (s?: string) => (s ? s.replace("T", " ").slice(0, 16) : "-");
 
@@ -86,28 +113,7 @@ export default function InventoryPage() {
     <AppShell>
       <PageHeader title="재고" desc="입출고 등록 및 이력" />
 
-      <Card className="mb-4">
-        <CardHeader title="입출고 등록" />
-        <CardBody>
-          <form onSubmit={adjust} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Field label="상품">
-              <Select value={form.productId} onChange={set("productId")} required>
-                <option value="">상품 선택</option>
-                {products.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
-              </Select>
-            </Field>
-            <Field label="유형">
-              <Select value={form.type} onChange={set("type")}>
-                <option value="IN">입고(IN)</option>
-                <option value="OUT">출고(OUT)</option>
-              </Select>
-            </Field>
-            <Field label="수량"><Input type="number" min={1} value={form.qty} onChange={set("qty")} /></Field>
-            <Field label="메모"><Input value={form.memo} onChange={set("memo")} /></Field>
-            <div className="sm:col-span-2 lg:col-span-4"><Button type="submit">+ 등록</Button></div>
-          </form>
-        </CardBody>
-      </Card>
+      <InventoryForm products={products} onCreated={load} />
 
       {err && (
         <Card className="mb-4 border-st-danger/40">

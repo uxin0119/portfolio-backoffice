@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -19,22 +19,10 @@ type Customer = {
 
 const EMPTY = { name: "", grade: "일반", contact: "" };
 
-export default function CustomersPage() {
-  const [items, setItems] = useState<Customer[]>([]);
-  const [err, setErr] = useState<string | null>(null);
+function CustomerForm({ onCreated }: { onCreated: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
-
-  async function load() {
-    try {
-      setItems(await api<Customer[]>("/api/customers"));
-      setErr(null);
-    } catch (e) {
-      setErr(String(e));
-    }
-  }
-  useEffect(() => {
-    load();
-  }, []);
+  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function create(e: FormEvent) {
     e.preventDefault();
@@ -44,20 +32,54 @@ export default function CustomersPage() {
         body: JSON.stringify({ name: form.name, grade: form.grade, contact: form.contact || null }),
       });
       setForm({ ...EMPTY });
-      load();
+      onCreated();
     } catch (e) {
       alert("등록 실패: " + e);
     }
   }
+
+  return (
+    <Card className="mb-4">
+      <CardHeader title="거래처 등록" />
+      <CardBody>
+        <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Field label="이름"><Input value={form.name} onChange={set("name")} required /></Field>
+          <Field label="등급">
+            <Select value={form.grade} onChange={set("grade")}>
+              <option value="일반">일반</option>
+              <option value="우수">우수</option>
+              <option value="VIP">VIP</option>
+            </Select>
+          </Field>
+          <Field label="연락처"><Input value={form.contact} onChange={set("contact")} placeholder="010-0000-0000" /></Field>
+          <div className="sm:col-span-3"><Button type="submit">+ 등록</Button></div>
+        </form>
+      </CardBody>
+    </Card>
+  );
+}
+
+export default function CustomersPage() {
+  const [items, setItems] = useState<Customer[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api<Customer[]>("/api/customers"));
+      setErr(null);
+    } catch (e) {
+      setErr(String(e));
+    }
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function remove(id: number) {
     if (!confirm("삭제할까요?")) return;
     await api(`/api/customers/${id}`, { method: "DELETE" });
     load();
   }
-
-  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const columns: Column<Customer>[] = [
     { key: "name", header: "이름", sortValue: (c) => c.name, render: (c) => <span className="font-medium text-fg">{c.name}</span> },
@@ -71,23 +93,7 @@ export default function CustomersPage() {
     <AppShell>
       <PageHeader title="거래처" desc="고객(소비자/회원) 목록 및 등록" />
 
-      <Card className="mb-4">
-        <CardHeader title="거래처 등록" />
-        <CardBody>
-          <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Field label="이름"><Input value={form.name} onChange={set("name")} required /></Field>
-            <Field label="등급">
-              <Select value={form.grade} onChange={set("grade")}>
-                <option value="일반">일반</option>
-                <option value="우수">우수</option>
-                <option value="VIP">VIP</option>
-              </Select>
-            </Field>
-            <Field label="연락처"><Input value={form.contact} onChange={set("contact")} placeholder="010-0000-0000" /></Field>
-            <div className="sm:col-span-3"><Button type="submit">+ 등록</Button></div>
-          </form>
-        </CardBody>
-      </Card>
+      <CustomerForm onCreated={load} />
 
       {err && (
         <Card className="mb-4 border-st-danger/40">

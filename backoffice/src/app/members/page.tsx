@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -13,22 +13,10 @@ type Member = { id: number; loginId: string; name: string; createdAt?: string };
 
 const EMPTY = { loginId: "", password: "", name: "" };
 
-export default function MembersPage() {
-  const [items, setItems] = useState<Member[]>([]);
-  const [err, setErr] = useState<string | null>(null);
+function MemberForm({ onCreated }: { onCreated: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
-
-  async function load() {
-    try {
-      setItems(await api<Member[]>("/api/members"));
-      setErr(null);
-    } catch (e) {
-      setErr(String(e));
-    }
-  }
-  useEffect(() => {
-    load();
-  }, []);
+  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function create(e: FormEvent) {
     e.preventDefault();
@@ -38,20 +26,48 @@ export default function MembersPage() {
         body: JSON.stringify({ loginId: form.loginId, password: form.password, name: form.name }),
       });
       setForm({ ...EMPTY });
-      load();
+      onCreated();
     } catch (e) {
       alert("회원 등록 실패: " + e);
     }
   }
+
+  return (
+    <Card className="mb-4">
+      <CardHeader title="회원 등록" />
+      <CardBody>
+        <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Field label="아이디"><Input value={form.loginId} onChange={set("loginId")} required /></Field>
+          <Field label="이름"><Input value={form.name} onChange={set("name")} /></Field>
+          <Field label="비밀번호"><Input type="password" value={form.password} onChange={set("password")} required /></Field>
+          <div className="sm:col-span-3"><Button type="submit">+ 등록</Button></div>
+        </form>
+      </CardBody>
+    </Card>
+  );
+}
+
+export default function MembersPage() {
+  const [items, setItems] = useState<Member[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api<Member[]>("/api/members"));
+      setErr(null);
+    } catch (e) {
+      setErr(String(e));
+    }
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function remove(id: number) {
     if (!confirm("삭제할까요?")) return;
     await api(`/api/members/${id}`, { method: "DELETE" });
     load();
   }
-
-  const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const columns: Column<Member>[] = [
     { key: "id", header: "ID", align: "right", sortValue: (m) => m.id },
@@ -65,17 +81,7 @@ export default function MembersPage() {
     <AppShell>
       <PageHeader title="회원" desc="가입 회원 목록 및 등록" />
 
-      <Card className="mb-4">
-        <CardHeader title="회원 등록" />
-        <CardBody>
-          <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Field label="아이디"><Input value={form.loginId} onChange={set("loginId")} required /></Field>
-            <Field label="이름"><Input value={form.name} onChange={set("name")} /></Field>
-            <Field label="비밀번호"><Input type="password" value={form.password} onChange={set("password")} required /></Field>
-            <div className="sm:col-span-3"><Button type="submit">+ 등록</Button></div>
-          </form>
-        </CardBody>
-      </Card>
+      <MemberForm onCreated={load} />
 
       {err && (
         <Card className="mb-4 border-st-danger/40">
