@@ -1,17 +1,11 @@
 package com.uxin.backoffice.storage;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-/**
- * Supabase Storage 업로드. 파일은 스토리지에 저장하고 공개 URL을 반환한다.
- * url/service-key 미설정 시 비활성(enabled=false) → 호출 측이 폴백 처리.
- */
-@Service
-public class SupabaseStorage {
+/** Supabase Storage 구현. url/service-key 미설정 시 비활성. */
+public class SupabaseStorage implements Storage {
 
   private final String url;
   private final String key;
@@ -19,10 +13,7 @@ public class SupabaseStorage {
   private final boolean enabled;
   private final RestClient http;
 
-  public SupabaseStorage(
-      @Value("${supabase.url:}") String url,
-      @Value("${supabase.service-key:}") String key,
-      @Value("${supabase.bucket:product-images}") String bucket) {
+  public SupabaseStorage(String url, String key, String bucket) {
     this.url = url == null ? "" : url.replaceAll("/+$", "");
     this.key = key == null ? "" : key;
     this.bucket = bucket;
@@ -30,20 +21,21 @@ public class SupabaseStorage {
 
     SimpleClientHttpRequestFactory f = new SimpleClientHttpRequestFactory();
     f.setConnectTimeout(10000);
-    f.setReadTimeout(90000); // Pollinations 생성 대기 등 대비
+    f.setReadTimeout(90000);
     this.http = RestClient.builder().requestFactory(f).build();
   }
 
+  @Override
   public boolean isEnabled() {
     return enabled;
   }
 
-  /** 외부 URL의 이미지 바이트를 받아온다. */
-  public byte[] fetch(String sourceUrl) {
-    return http.get().uri(sourceUrl).retrieve().body(byte[].class);
+  @Override
+  public boolean owns(String u) {
+    return u != null && u.contains("/storage/v1/object/public/");
   }
 
-  /** 버킷의 path에 바이트 업로드 후 공개 URL 반환. */
+  @Override
   public String upload(String path, byte[] bytes, String contentType) {
     http.post()
         .uri(url + "/storage/v1/object/" + bucket + "/" + path)

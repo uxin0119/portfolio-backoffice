@@ -88,7 +88,7 @@ public class ProductController {
       if (attempted >= limit) break;
       if (imageService.isStored(p)) continue;
       attempted++;
-      if (imageService.storeToSupabase(p)) stored++;
+      if (imageService.store(p)) stored++;
       else failed++;
     }
     return Map.of("attempted", attempted, "stored", stored, "failed", failed);
