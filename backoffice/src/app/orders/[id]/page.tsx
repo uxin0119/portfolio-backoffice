@@ -28,6 +28,11 @@ type OrderDetail = {
   orderDate: string;
   totalAmount: number;
   items: Item[];
+  recipientName?: string | null;
+  recipientPhone?: string | null;
+  shipPostcode?: string | null;
+  shipAddress?: string | null;
+  shipAddressDetail?: string | null;
 };
 
 const STATUSES: StatusKey[] = ["ACCEPTED", "SHIPPED", "DONE", "CANCELLED"];
@@ -131,6 +136,27 @@ export default function OrderDetailPage() {
                   {STATUSES.map((s) => (<option key={s} value={s}>{s}</option>))}
                 </Select>
               </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="배송 정보" />
+            <CardBody className="space-y-3 text-sm">
+              {order.recipientName || order.shipAddress ? (
+                <>
+                  <Row label="받는 분" value={order.recipientName ?? "-"} />
+                  <Row label="연락처" value={order.recipientPhone ?? "-"} />
+                  <Row label="우편번호" value={order.shipPostcode ?? "-"} />
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="shrink-0 text-subtle">주소</span>
+                    <span className="text-right font-medium text-fg">
+                      {[order.shipAddress ?? "", order.shipAddressDetail ?? ""].filter(Boolean).join(" ") || "-"}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-subtle">배송 정보가 없습니다.</p>
+              )}
             </CardBody>
           </Card>
         </div>

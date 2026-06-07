@@ -32,14 +32,32 @@ public class OrderService {
 
   public record ItemReq(Long productId, int qty) {}
 
+  /** 배송 스냅샷 (체크아웃 시점 수령인/주소). null이면 미지정. */
+  public record Shipping(
+      String recipientName, String recipientPhone,
+      String postcode, String address, String addressDetail) {}
+
+  /** 배송정보 없이 생성(시더/내부용). */
   @Transactional
   public Order create(Long customerId, List<ItemReq> items) {
+    return create(customerId, items, null);
+  }
+
+  @Transactional
+  public Order create(Long customerId, List<ItemReq> items, Shipping ship) {
     Order o = new Order();
     o.setCustomerId(customerId);
     o.setStatus("ACCEPTED");
     o.setOrderDate(LocalDate.now());
     o.setOrderNo(genOrderNo());
     o.setTotalAmount(0);
+    if (ship != null) {
+      o.setRecipientName(ship.recipientName());
+      o.setRecipientPhone(ship.recipientPhone());
+      o.setShipPostcode(ship.postcode());
+      o.setShipAddress(ship.address());
+      o.setShipAddressDetail(ship.addressDetail());
+    }
     o = orderRepo.save(o);
 
     int total = 0;

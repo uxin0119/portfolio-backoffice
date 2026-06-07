@@ -20,11 +20,25 @@ public class AuthController {
     this.encoder = encoder;
   }
 
-  public record SignupReq(String loginId, String password, String name) {}
+  public record SignupReq(
+      String loginId, String password, String name,
+      String email, String phone, String postcode, String address, String addressDetail) {}
 
   public record LoginReq(String loginId, String password) {}
 
-  public record AuthRes(Long id, String loginId, String name, String token) {}
+  public record AuthRes(
+      Long id, String loginId, String name, String token,
+      String email, String phone, String postcode, String address, String addressDetail) {
+    static AuthRes of(Member m) {
+      return new AuthRes(
+          m.getId(), m.getLoginId(), m.getName(), "m_" + m.getId(),
+          m.getEmail(), m.getPhone(), m.getPostcode(), m.getAddress(), m.getAddressDetail());
+    }
+  }
+
+  private static String trimToNull(String s) {
+    return (s == null || s.isBlank()) ? null : s.trim();
+  }
 
   @PostMapping("/signup")
   public AuthRes signup(@RequestBody SignupReq r) {
@@ -34,12 +48,21 @@ public class AuthController {
     if (repo.existsByLoginId(r.loginId())) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다");
     }
+    String email = trimToNull(r.email());
+    if (email != null && repo.existsByEmail(email)) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다");
+    }
     Member m = new Member();
     m.setLoginId(r.loginId());
     m.setPasswordHash(encoder.encode(r.password()));
     m.setName(r.name() != null && !r.name().isBlank() ? r.name() : r.loginId());
+    m.setEmail(email);
+    m.setPhone(trimToNull(r.phone()));
+    m.setPostcode(trimToNull(r.postcode()));
+    m.setAddress(trimToNull(r.address()));
+    m.setAddressDetail(trimToNull(r.addressDetail()));
     repo.save(m);
-    return new AuthRes(m.getId(), m.getLoginId(), m.getName(), "m_" + m.getId());
+    return AuthRes.of(m);
   }
 
   @PostMapping("/login")
@@ -49,6 +72,6 @@ public class AuthController {
     if (!encoder.matches(r.password(), m.getPasswordHash())) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다");
     }
-    return new AuthRes(m.getId(), m.getLoginId(), m.getName(), "m_" + m.getId());
+    return AuthRes.of(m);
   }
 }

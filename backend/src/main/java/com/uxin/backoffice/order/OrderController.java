@@ -35,7 +35,10 @@ public class OrderController {
 
   public record ItemLine(Long productId, Integer qty) {}
 
-  public record CreateReq(Long customerId, List<ItemLine> items) {}
+  public record CreateReq(
+      Long customerId, List<ItemLine> items,
+      String recipientName, String recipientPhone,
+      String postcode, String address, String addressDetail) {}
 
   public record StatusReq(String status) {}
 
@@ -48,7 +51,9 @@ public class OrderController {
 
   public record OrderDetail(
       Long id, String orderNo, Long customerId, String customerName,
-      String status, LocalDate orderDate, int totalAmount, List<ItemRes> items) {}
+      String status, LocalDate orderDate, int totalAmount, List<ItemRes> items,
+      String recipientName, String recipientPhone,
+      String shipPostcode, String shipAddress, String shipAddressDetail) {}
 
   @GetMapping
   public List<OrderRes> list() {
@@ -78,7 +83,9 @@ public class OrderController {
             it.getQty(), it.getUnitPrice(), it.getLineAmount()))
         .toList();
     return new OrderDetail(o.getId(), o.getOrderNo(), o.getCustomerId(), customerName,
-        o.getStatus(), o.getOrderDate(), o.getTotalAmount(), items);
+        o.getStatus(), o.getOrderDate(), o.getTotalAmount(), items,
+        o.getRecipientName(), o.getRecipientPhone(),
+        o.getShipPostcode(), o.getShipAddress(), o.getShipAddressDetail());
   }
 
   @PostMapping
@@ -86,7 +93,9 @@ public class OrderController {
     var items = r.items().stream()
         .map(i -> new OrderService.ItemReq(i.productId(), i.qty()))
         .toList();
-    Order o = service.create(r.customerId(), items);
+    var ship = new OrderService.Shipping(
+        r.recipientName(), r.recipientPhone(), r.postcode(), r.address(), r.addressDetail());
+    Order o = service.create(r.customerId(), items, ship);
     return get(o.getId());
   }
 

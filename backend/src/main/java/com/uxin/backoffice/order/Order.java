@@ -33,6 +33,22 @@ public class Order {
   @Column(name = "total_amount", nullable = false)
   private int totalAmount;
 
+  // 배송 스냅샷 (체크아웃 시점 고정)
+  @Column(name = "recipient_name")
+  private String recipientName;
+
+  @Column(name = "recipient_phone")
+  private String recipientPhone;
+
+  @Column(name = "ship_postcode")
+  private String shipPostcode;
+
+  @Column(name = "ship_address")
+  private String shipAddress;
+
+  @Column(name = "ship_address_detail")
+  private String shipAddressDetail;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 

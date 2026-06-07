@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { loadTossPayments, ANONYMOUS } from "@tosspayments/tosspayments-sdk";
@@ -18,14 +18,37 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, total } = useCart();
   const { member } = useAuth();
-  const [name, setName] = useState(member?.name ?? "");
-  const [contact, setContact] = useState("");
+  const [ship, setShip] = useState({
+    recipientName: "",
+    recipientPhone: "",
+    postcode: "",
+    address: "",
+    addressDetail: "",
+  });
   const [busy, setBusy] = useState(false);
+  const set = (k: keyof typeof ship) => (e: { target: { value: string } }) =>
+    setShip((s) => ({ ...s, [k]: e.target.value }));
+
+  // 로그인 회원이면 저장된 연락처/주소로 배송지 자동 채움(비어 있는 칸만)
+  useEffect(() => {
+    if (!member) return;
+    setShip((s) => ({
+      recipientName: s.recipientName || member.name || "",
+      recipientPhone: s.recipientPhone || member.phone || "",
+      postcode: s.postcode || member.postcode || "",
+      address: s.address || member.address || "",
+      addressDetail: s.addressDetail || member.addressDetail || "",
+    }));
+  }, [member]);
 
   function validate() {
     if (items.length === 0) return false;
-    if (!name.trim()) {
-      alert("주문자 이름을 입력하세요.");
+    if (!ship.recipientName.trim()) {
+      alert("받는 분 이름을 입력하세요.");
+      return false;
+    }
+    if (!ship.address.trim()) {
+      alert("배송 주소를 입력하세요.");
       return false;
     }
     return true;
@@ -34,13 +57,18 @@ export default function CheckoutPage() {
   async function createOrder(): Promise<CreatedOrder> {
     const customer = await api<{ id: number }>("/api/customers", {
       method: "POST",
-      body: JSON.stringify({ name, grade: "일반", contact: contact || null }),
+      body: JSON.stringify({ name: ship.recipientName, grade: "일반", contact: ship.recipientPhone || null }),
     });
     return api<CreatedOrder>("/api/orders", {
       method: "POST",
       body: JSON.stringify({
         customerId: customer.id,
         items: items.map((i) => ({ productId: i.productId, qty: i.qty })),
+        recipientName: ship.recipientName,
+        recipientPhone: ship.recipientPhone || null,
+        postcode: ship.postcode || null,
+        address: ship.address || null,
+        addressDetail: ship.addressDetail || null,
       }),
     });
   }
@@ -60,7 +88,7 @@ export default function CheckoutPage() {
         orderName: items[0].name + (items.length > 1 ? ` 외 ${items.length - 1}건` : ""),
         successUrl: window.location.origin + "/payment/success",
         failUrl: window.location.origin + "/payment/fail",
-        customerName: name,
+        customerName: ship.recipientName,
       });
     } catch (err) {
       alert("결제 시작 실패: " + err);
@@ -101,10 +129,16 @@ export default function CheckoutPage() {
       <h1 className="mb-5 text-xl font-bold text-fg">주문/결제</h1>
       <div className="space-y-4">
         <Card>
-          <CardHeader title="주문자 정보" />
+          <CardHeader title="배송 정보" />
           <CardBody className="space-y-3">
-            <Field label="이름"><Input value={name} onChange={(e) => setName(e.target.value)} required /></Field>
-            <Field label="연락처"><Input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="010-0000-0000" /></Field>
+            {member && (
+              <p className="text-xs text-subtle">회원 정보로 자동 입력했어요. 필요하면 수정하세요.</p>
+            )}
+            <Field label="받는 분"><Input value={ship.recipientName} onChange={set("recipientName")} required /></Field>
+            <Field label="연락처"><Input value={ship.recipientPhone} onChange={set("recipientPhone")} placeholder="010-0000-0000" /></Field>
+            <Field label="우편번호"><Input value={ship.postcode} onChange={set("postcode")} placeholder="06234" /></Field>
+            <Field label="기본주소"><Input value={ship.address} onChange={set("address")} placeholder="서울시 강남구 …" required /></Field>
+            <Field label="상세주소"><Input value={ship.addressDetail} onChange={set("addressDetail")} placeholder="동/호수 등" /></Field>
           </CardBody>
         </Card>
         <Card>

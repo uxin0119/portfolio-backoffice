@@ -9,11 +9,32 @@ import {
 } from "react";
 import { api } from "@/lib/api";
 
-export type Member = { id: number; loginId: string; name: string; token: string };
+export type Member = {
+  id: number;
+  loginId: string;
+  name: string;
+  token: string;
+  email?: string | null;
+  phone?: string | null;
+  postcode?: string | null;
+  address?: string | null;
+  addressDetail?: string | null;
+};
+
+export type SignupData = {
+  loginId: string;
+  password: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  postcode?: string;
+  address?: string;
+  addressDetail?: string;
+};
 
 type AuthCtx = {
   member: Member | null;
-  signup: (loginId: string, password: string, name: string) => Promise<void>;
+  signup: (data: SignupData) => Promise<void>;
   login: (loginId: string, password: string) => Promise<void>;
   logout: () => void;
 };
@@ -38,10 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {}
   }
 
-  const signup: AuthCtx["signup"] = async (loginId, password, name) => {
+  const signup: AuthCtx["signup"] = async (data) => {
     const m = await api<Member>("/api/auth/signup", {
       method: "POST",
-      body: JSON.stringify({ loginId, password, name }),
+      body: JSON.stringify(data),
     });
     persist(m);
   };

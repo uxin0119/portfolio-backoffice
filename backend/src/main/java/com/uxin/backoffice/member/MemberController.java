@@ -18,7 +18,9 @@ public class MemberController {
     this.repo = repo;
   }
 
-  public record MemberRes(Long id, String loginId, String name, String createdAt) {}
+  public record MemberRes(
+      Long id, String loginId, String name, String createdAt,
+      String email, String phone, String postcode, String address, String addressDetail) {}
 
   @GetMapping
   public List<MemberRes> list() {
@@ -26,7 +28,8 @@ public class MemberController {
         .sorted((a, b) -> b.getId().compareTo(a.getId()))
         .map(m -> new MemberRes(
             m.getId(), m.getLoginId(), m.getName(),
-            m.getCreatedAt() == null ? null : m.getCreatedAt().toString()))
+            m.getCreatedAt() == null ? null : m.getCreatedAt().toString(),
+            m.getEmail(), m.getPhone(), m.getPostcode(), m.getAddress(), m.getAddressDetail()))
         .toList();
   }
 
