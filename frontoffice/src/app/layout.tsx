@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import { StoreHeader } from "@/components/store-header";
+import { StoreFooter } from "@/components/store-footer";
 
 export const metadata: Metadata = {
   title: "생활잡화 스토어",
@@ -27,11 +28,12 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full antialiased">
+      <body className="flex min-h-full flex-col antialiased">
         <AuthProvider>
           <CartProvider>
             <StoreHeader />
-            <main>{children}</main>
+            <main className="flex-1">{children}</main>
+            <StoreFooter />
           </CartProvider>
         </AuthProvider>
       </body>
