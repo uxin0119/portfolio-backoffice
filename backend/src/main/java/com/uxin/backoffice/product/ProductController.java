@@ -20,6 +20,7 @@ public class ProductController {
       String sku,
       String name,
       String category,
+      String tags,
       Integer basePrice,
       Integer stockQty,
       Integer safetyStock,
@@ -31,6 +32,7 @@ public class ProductController {
       String sku,
       String name,
       String category,
+      String tags,
       int basePrice,
       int stockQty,
       int safetyStock,
@@ -39,7 +41,7 @@ public class ProductController {
       boolean lowStock) {
     static ProductRes of(Product p) {
       return new ProductRes(
-          p.getId(), p.getSku(), p.getName(), p.getCategory(),
+          p.getId(), p.getSku(), p.getName(), p.getCategory(), p.getTags(),
           p.getBasePrice(), p.getStockQty(), p.getSafetyStock(),
           p.getStatus(), p.getImageUrl(), p.getStockQty() < p.getSafetyStock());
     }
@@ -98,6 +100,7 @@ public class ProductController {
     if (r.sku() != null) p.setSku(r.sku());
     if (r.name() != null) p.setName(r.name());
     p.setCategory(r.category());
+    if (r.tags() != null) p.setTags(r.tags().isBlank() ? null : r.tags().trim());
     if (r.basePrice() != null) p.setBasePrice(r.basePrice());
     if (r.stockQty() != null) p.setStockQty(r.stockQty());
     if (r.safetyStock() != null) p.setSafetyStock(r.safetyStock());

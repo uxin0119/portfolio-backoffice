@@ -23,9 +23,10 @@ type Product = {
   status: string;
   imageUrl?: string;
   lowStock: boolean;
+  tags?: string;
 };
 
-const EMPTY = { sku: "", name: "", category: "", basePrice: "", stockQty: "", safetyStock: "" };
+const EMPTY = { sku: "", name: "", category: "", tags: "", basePrice: "", stockQty: "", safetyStock: "" };
 
 function ProductForm({ onCreated, onCancel }: { onCreated: () => void; onCancel: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
@@ -43,6 +44,7 @@ function ProductForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
           sku: form.sku,
           name: form.name,
           category: form.category || null,
+          tags: form.tags || null,
           basePrice: Number(form.basePrice || 0),
           stockQty: Number(form.stockQty || 0),
           safetyStock: Number(form.safetyStock || 0),
@@ -62,6 +64,7 @@ function ProductForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
       <Field label="SKU"><Input value={form.sku} onChange={set("sku")} required autoFocus /></Field>
       <Field label="상품명"><Input value={form.name} onChange={set("name")} required /></Field>
       <Field label="카테고리"><Input value={form.category} onChange={set("category")} /></Field>
+      <Field label="태그(쉼표 구분)"><Input value={form.tags} onChange={set("tags")} placeholder="친환경,1인가구" /></Field>
       <Field label="기준가(원)"><Input type="number" value={form.basePrice} onChange={set("basePrice")} /></Field>
       <Field label="재고수량"><Input type="number" value={form.stockQty} onChange={set("stockQty")} /></Field>
       <Field label="안전재고"><Input type="number" value={form.safetyStock} onChange={set("safetyStock")} /></Field>
@@ -112,6 +115,7 @@ export default function ProductsPage() {
     { key: "sku", header: "SKU", sortValue: (p) => p.sku, render: (p) => <span className="font-medium text-fg">{p.sku}</span> },
     { key: "name", header: "상품명", sortValue: (p) => p.name },
     { key: "category", header: "카테고리", render: (p) => <span className="text-subtle">{p.category ?? "-"}</span> },
+    { key: "tags", header: "태그", render: (p) => <span className="text-xs text-subtle">{p.tags ? p.tags.split(",").map((t) => "#" + t.trim()).join(" ") : "-"}</span> },
     { key: "basePrice", header: "기준가", align: "right", sortValue: (p) => p.basePrice, render: (p) => won(p.basePrice) },
     {
       key: "stock", header: "재고/안전", align: "right", sortValue: (p) => p.stockQty,

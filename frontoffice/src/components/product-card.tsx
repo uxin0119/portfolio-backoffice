@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { won } from "@/lib/api";
 import { productImageUrl } from "@/lib/img";
 import { useCart } from "@/lib/cart";
@@ -10,11 +11,16 @@ export type Product = {
   id: number;
   name: string;
   category?: string;
+  tags?: string;
   basePrice: number;
   stockQty: number;
   status: string;
   imageUrl?: string;
 };
+
+export function splitTags(tags?: string): string[] {
+  return (tags ?? "").split(",").map((t) => t.trim()).filter(Boolean);
+}
 
 /** 상품 카드 — 메인(추천) / 상품목록 페이지에서 공용. */
 export function ProductCard({ p }: { p: Product }) {
@@ -33,6 +39,19 @@ export function ProductCard({ p }: { p: Product }) {
           <p className="text-xs text-subtle">{p.category ?? ""}</p>
           <p className="line-clamp-2 text-sm font-medium text-fg">{p.name}</p>
           <p className="mt-1 font-bold tabular-nums text-fg">{won(p.basePrice)}</p>
+          {splitTags(p.tags).length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
+              {splitTags(p.tags).slice(0, 3).map((t) => (
+                <Link
+                  key={t}
+                  href={`/products?tag=${encodeURIComponent(t)}`}
+                  className="text-xs text-primary hover:underline"
+                >
+                  #{t}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
         <Button
           size="sm"

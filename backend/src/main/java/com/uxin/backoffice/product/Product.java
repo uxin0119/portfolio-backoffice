@@ -25,6 +25,9 @@ public class Product {
 
   private String category;
 
+  // 해시태그(콤마 구분, 예: "주방,친환경,1인가구"). 다중 키워드 탐색용.
+  private String tags;
+
   @Column(name = "base_price", nullable = false)
   private int basePrice;
 

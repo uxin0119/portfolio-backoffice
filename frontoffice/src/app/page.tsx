@@ -17,11 +17,16 @@ const PROMOS = [
 export default function Home() {
   const { member } = useAuth();
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     api<Product[]>("/api/products")
-      .then((ps) => setFeatured(ps.filter((p) => p.status === "ACTIVE").slice(0, 4)))
-      .catch(() => setFeatured([]));
+      .then((ps) => {
+        const active = ps.filter((p) => p.status === "ACTIVE");
+        setFeatured(active.slice(0, 4));
+        setCategories(Array.from(new Set(active.map((p) => p.category).filter(Boolean))) as string[]);
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -61,6 +66,24 @@ export default function Home() {
           </Card>
         ))}
       </section>
+
+      {/* 카테고리별 둘러보기 */}
+      {categories.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-lg font-bold text-fg">카테고리별 둘러보기</h2>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <Link
+                key={c}
+                href={`/products?category=${encodeURIComponent(c)}`}
+                className="rounded-full border border-line px-4 py-1.5 text-sm text-fg hover:border-primary hover:text-primary"
+              >
+                {c}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 추천 상품 미리보기 */}
       <section>
