@@ -7,6 +7,7 @@ import { NAV } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { AdminFooter } from "@/components/admin-footer";
 import { IconLogout, IconMenu } from "@/components/icons";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -100,6 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="flex-1 p-4 lg:p-6">{children}</main>
+        <AdminFooter />
       </div>
     </div>
   );
