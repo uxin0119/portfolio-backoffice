@@ -24,6 +24,10 @@ public class Order {
   @Column(name = "customer_id", nullable = false)
   private Long customerId;
 
+  // 주문한 회원(로그인 구매 시). 게스트/시더 주문은 null.
+  @Column(name = "member_id")
+  private Long memberId;
+
   @Column(nullable = false)
   private String status = "ACCEPTED";
 

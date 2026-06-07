@@ -36,7 +36,7 @@ public class OrderController {
   public record ItemLine(Long productId, Integer qty) {}
 
   public record CreateReq(
-      Long customerId, List<ItemLine> items,
+      Long customerId, Long memberId, List<ItemLine> items,
       String recipientName, String recipientPhone,
       String postcode, String address, String addressDetail) {}
 
@@ -95,8 +95,16 @@ public class OrderController {
         .toList();
     var ship = new OrderService.Shipping(
         r.recipientName(), r.recipientPhone(), r.postcode(), r.address(), r.addressDetail());
-    Order o = service.create(r.customerId(), items, ship);
+    Order o = service.create(r.customerId(), r.memberId(), items, ship);
     return get(o.getId());
+  }
+
+  /** 마이페이지 — 특정 회원의 주문 내역(항목·배송정보 포함). */
+  @GetMapping("/my")
+  public List<OrderDetail> myOrders(@RequestParam Long memberId) {
+    return orderRepo.findByMemberIdOrderByIdDesc(memberId).stream()
+        .map(o -> get(o.getId()))
+        .toList();
   }
 
   @PatchMapping("/{id}/status")

@@ -32,10 +32,19 @@ export type SignupData = {
   addressDetail?: string;
 };
 
+export type ProfileUpdate = {
+  email?: string;
+  phone?: string;
+  postcode?: string;
+  address?: string;
+  addressDetail?: string;
+};
+
 type AuthCtx = {
   member: Member | null;
   signup: (data: SignupData) => Promise<void>;
   login: (loginId: string, password: string) => Promise<void>;
+  update: (data: ProfileUpdate) => Promise<void>;
   logout: () => void;
 };
 
@@ -75,10 +84,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persist(m);
   };
 
+  const update: AuthCtx["update"] = async (data) => {
+    if (!member) return;
+    const res = await api<Omit<Member, "token">>(`/api/members/${member.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    persist({ ...member, ...res });
+  };
+
   const logout = () => persist(null);
 
   return (
-    <AuthContext.Provider value={{ member, signup, login, logout }}>
+    <AuthContext.Provider value={{ member, signup, login, update, logout }}>
       {children}
     </AuthContext.Provider>
   );

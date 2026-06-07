@@ -37,16 +37,17 @@ public class OrderService {
       String recipientName, String recipientPhone,
       String postcode, String address, String addressDetail) {}
 
-  /** 배송정보 없이 생성(시더/내부용). */
+  /** 배송정보/회원 없이 생성(시더/내부용). */
   @Transactional
   public Order create(Long customerId, List<ItemReq> items) {
-    return create(customerId, items, null);
+    return create(customerId, null, items, null);
   }
 
   @Transactional
-  public Order create(Long customerId, List<ItemReq> items, Shipping ship) {
+  public Order create(Long customerId, Long memberId, List<ItemReq> items, Shipping ship) {
     Order o = new Order();
     o.setCustomerId(customerId);
+    o.setMemberId(memberId);
     o.setStatus("ACCEPTED");
     o.setOrderDate(LocalDate.now());
     o.setOrderNo(genOrderNo());

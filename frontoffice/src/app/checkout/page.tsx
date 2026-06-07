@@ -63,6 +63,7 @@ export default function CheckoutPage() {
       method: "POST",
       body: JSON.stringify({
         customerId: customer.id,
+        memberId: member?.id ?? null,
         items: items.map((i) => ({ productId: i.productId, qty: i.qty })),
         recipientName: ship.recipientName,
         recipientPhone: ship.recipientPhone || null,

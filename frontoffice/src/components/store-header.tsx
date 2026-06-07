@@ -23,8 +23,8 @@ export function StoreHeader() {
         <ThemeToggle />
 
         {member ? (
-          <div className="flex items-center gap-2 text-sm">
-            <span className="hidden text-subtle sm:inline">{member.name}님</span>
+          <div className="flex items-center gap-1 text-sm">
+            <Link href="/mypage" className="rounded-lg px-2 py-1 font-medium text-fg hover:bg-surface-2">{member.name}님</Link>
             <button type="button" onClick={logout} className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">로그아웃</button>
           </div>
         ) : (
