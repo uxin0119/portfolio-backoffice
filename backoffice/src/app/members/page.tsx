@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
+import { Modal } from "@/components/ui/modal";
 import { api } from "@/lib/api";
 
 type Member = {
@@ -32,13 +33,15 @@ const EMPTY = {
   addressDetail: "",
 };
 
-function MemberForm({ onCreated }: { onCreated: () => void }) {
+function MemberForm({ onCreated, onCancel }: { onCreated: () => void; onCancel: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
+  const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function create(e: FormEvent) {
     e.preventDefault();
+    setBusy(true);
     try {
       await api("/api/auth/signup", {
         method: "POST",
@@ -48,32 +51,33 @@ function MemberForm({ onCreated }: { onCreated: () => void }) {
       onCreated();
     } catch (e) {
       alert("회원 등록 실패: " + e);
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <Card className="mb-4">
-      <CardHeader title="회원 등록" />
-      <CardBody>
-        <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Field label="아이디"><Input value={form.loginId} onChange={set("loginId")} required /></Field>
-          <Field label="이름"><Input value={form.name} onChange={set("name")} /></Field>
-          <Field label="비밀번호"><Input type="password" value={form.password} onChange={set("password")} required /></Field>
-          <Field label="이메일"><Input type="email" value={form.email} onChange={set("email")} /></Field>
-          <Field label="전화번호"><Input value={form.phone} onChange={set("phone")} placeholder="010-0000-0000" /></Field>
-          <Field label="우편번호"><Input value={form.postcode} onChange={set("postcode")} /></Field>
-          <Field label="기본주소"><Input value={form.address} onChange={set("address")} /></Field>
-          <Field label="상세주소"><Input value={form.addressDetail} onChange={set("addressDetail")} /></Field>
-          <div className="sm:col-span-3"><Button type="submit">+ 등록</Button></div>
-        </form>
-      </CardBody>
-    </Card>
+    <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <Field label="아이디"><Input value={form.loginId} onChange={set("loginId")} required autoFocus /></Field>
+      <Field label="이름"><Input value={form.name} onChange={set("name")} /></Field>
+      <Field label="비밀번호"><Input type="password" value={form.password} onChange={set("password")} required /></Field>
+      <Field label="이메일"><Input type="email" value={form.email} onChange={set("email")} /></Field>
+      <Field label="전화번호"><Input value={form.phone} onChange={set("phone")} placeholder="010-0000-0000" /></Field>
+      <Field label="우편번호"><Input value={form.postcode} onChange={set("postcode")} /></Field>
+      <Field label="기본주소"><Input value={form.address} onChange={set("address")} /></Field>
+      <Field label="상세주소"><Input value={form.addressDetail} onChange={set("addressDetail")} /></Field>
+      <div className="mt-1 flex justify-end gap-2 sm:col-span-2">
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={busy}>취소</Button>
+        <Button type="submit" disabled={busy}>{busy ? "등록 중…" : "+ 등록"}</Button>
+      </div>
+    </form>
   );
 }
 
 export default function MembersPage() {
   const [items, setItems] = useState<Member[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -112,9 +116,21 @@ export default function MembersPage() {
 
   return (
     <AppShell>
-      <PageHeader title="회원" desc="가입 회원 목록 및 등록" />
+      <PageHeader
+        title="회원"
+        desc="가입 회원 목록 및 등록"
+        action={<Button onClick={() => setOpen(true)}>+ 회원 등록</Button>}
+      />
 
-      <MemberForm onCreated={load} />
+      <Modal open={open} onClose={() => setOpen(false)} title="회원 등록">
+        <MemberForm
+          onCreated={() => {
+            setOpen(false);
+            load();
+          }}
+          onCancel={() => setOpen(false)}
+        />
+      </Modal>
 
       {err && (
         <Card className="mb-4 border-st-danger/40">

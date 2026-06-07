@@ -1,87 +1,84 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, won } from "@/lib/api";
-import { productImageUrl } from "@/lib/img";
-import { useCart } from "@/lib/cart";
+import Link from "next/link";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { buttonClass } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ProductCard, type Product } from "@/components/product-card";
 
-type Product = {
-  id: number;
-  name: string;
-  category?: string;
-  basePrice: number;
-  stockQty: number;
-  status: string;
-  imageUrl?: string;
-};
+const PROMOS = [
+  { emoji: "🎁", title: "신규가입 10% 쿠폰", desc: "지금 가입하고 첫 주문 할인받기" },
+  { emoji: "🚚", title: "3만원 이상 무료배송", desc: "생활잡화 한 번에 채우기" },
+  { emoji: "🔥", title: "이번 주 베스트 특가", desc: "인기 상품을 더 저렴하게" },
+];
 
-export default function Catalog() {
-  const [items, setItems] = useState<Product[]>([]);
-  const [err, setErr] = useState<string | null>(null);
-  const { add } = useCart();
+export default function Home() {
+  const { member } = useAuth();
+  const [featured, setFeatured] = useState<Product[]>([]);
 
   useEffect(() => {
     api<Product[]>("/api/products")
-      .then((ps) => setItems(ps.filter((p) => p.status === "ACTIVE")))
-      .catch((e) => setErr(String(e)));
+      .then((ps) => setFeatured(ps.filter((p) => p.status === "ACTIVE").slice(0, 4)))
+      .catch(() => setFeatured([]));
   }, []);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
-      <h1 className="mb-1 text-xl font-bold text-fg">상품 둘러보기</h1>
-      <p className="mb-5 text-sm text-subtle">마음에 드는 상품을 장바구니에 담아보세요</p>
-
-      {err && (
-        <p className="mb-4 text-sm text-st-danger">
-          상품을 불러오지 못했습니다. 백엔드(8080) 실행 여부를 확인하세요.
+    <div className="mx-auto max-w-5xl space-y-10 px-4 py-6">
+      {/* 히어로(광고영역) */}
+      <section className="overflow-hidden rounded-2xl bg-primary px-6 py-12 text-primary-fg sm:px-10 sm:py-16">
+        <p className="text-sm font-medium opacity-80">생활잡화 스토어</p>
+        <h1 className="mt-2 max-w-xl text-2xl font-bold leading-snug sm:text-4xl">
+          매일 쓰는 생활잡화,<br />가볍게 채우세요
+        </h1>
+        <p className="mt-3 max-w-md text-sm opacity-90 sm:text-base">
+          주방·청소·욕실·반려까지. 필요한 잡화를 한 곳에서 합리적인 가격으로.
         </p>
-      )}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/products" className={buttonClass("secondary", "md", "!text-fg")}>
+            상품 둘러보기
+          </Link>
+          {!member && (
+            <Link href="/signup" className={buttonClass("ghost", "md", "!text-primary-fg hover:!bg-white/15")}>
+              회원가입하고 쿠폰받기
+            </Link>
+          )}
+        </div>
+      </section>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {items.map((p) => {
-          const sold = p.stockQty <= 0;
-          return (
-            <Card key={p.id} className="flex flex-col overflow-hidden">
-              <div className="aspect-square overflow-hidden bg-surface-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={p.imageUrl || productImageUrl(p.name, p.id)}
-                  alt={p.name}
-                  loading="lazy"
-                  className="h-full w-full object-cover"
-                />
+      {/* 프로모션 배너 */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {PROMOS.map((b) => (
+          <Card key={b.title}>
+            <CardBody className="flex items-start gap-3">
+              <span className="text-2xl">{b.emoji}</span>
+              <div>
+                <p className="text-sm font-semibold text-fg">{b.title}</p>
+                <p className="mt-0.5 text-xs text-subtle">{b.desc}</p>
               </div>
-              <CardBody className="flex flex-1 flex-col gap-2">
-                <div className="flex-1">
-                  <p className="text-xs text-subtle">{p.category ?? ""}</p>
-                  <p className="line-clamp-2 text-sm font-medium text-fg">{p.name}</p>
-                  <p className="mt-1 font-bold tabular-nums text-fg">{won(p.basePrice)}</p>
-                </div>
-                <Button
-                  size="sm"
-                  disabled={sold}
-                  onClick={() =>
-                    add({
-                      productId: p.id,
-                      name: p.name,
-                      price: p.basePrice,
-                      imageUrl: p.imageUrl || productImageUrl(p.name, p.id),
-                    })
-                  }
-                >
-                  {sold ? "품절" : "담기"}
-                </Button>
-              </CardBody>
-            </Card>
-          );
-        })}
-      </div>
+            </CardBody>
+          </Card>
+        ))}
+      </section>
 
-      {items.length === 0 && !err && (
-        <p className="py-12 text-center text-subtle">상품이 없습니다</p>
-      )}
+      {/* 추천 상품 미리보기 */}
+      <section>
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-fg">추천 상품</h2>
+            <p className="text-sm text-subtle">지금 인기 있는 잡화를 골라봤어요</p>
+          </div>
+          <Link href="/products" className="text-sm font-medium text-primary hover:underline">
+            전체 상품 보기 →
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {featured.map((p) => (
+            <ProductCard key={p.id} p={p} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

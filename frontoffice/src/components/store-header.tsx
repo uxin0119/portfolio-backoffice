@@ -16,6 +16,9 @@ export function StoreHeader() {
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-fg">S</span>
           <span className="text-sm font-semibold text-fg">생활잡화 스토어</span>
         </Link>
+        <nav className="ml-2 hidden items-center gap-1 text-sm sm:flex">
+          <Link href="/products" className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">상품</Link>
+        </nav>
         <div className="flex-1" />
         <ThemeToggle />
 
