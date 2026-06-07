@@ -8,6 +8,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type StatusKey } from "@/components/ui/badge";
 import { Field, Select, Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { api, won } from "@/lib/api";
 
 type Order = {
@@ -30,6 +31,8 @@ export default function OrdersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [customerId, setCustomerId] = useState("");
   const [lines, setLines] = useState<Line[]>([{ productId: "", qty: "1" }]);
 
@@ -61,6 +64,7 @@ export default function OrdersPage() {
       alert("거래처와 상품을 선택하세요.");
       return;
     }
+    setBusy(true);
     try {
       await api("/api/orders", {
         method: "POST",
@@ -68,9 +72,12 @@ export default function OrdersPage() {
       });
       setCustomerId("");
       setLines([{ productId: "", qty: "1" }]);
+      setOpen(false);
       load();
     } catch (e) {
       alert("주문 등록 실패: " + e);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -92,44 +99,48 @@ export default function OrdersPage() {
 
   return (
     <AppShell>
-      <PageHeader title="주문" desc="발주 등록 · 상태 워크플로우(발송 시 재고 자동 차감)" />
+      <PageHeader
+        title="주문"
+        desc="발주 등록 · 상태 워크플로우(발송 시 재고 자동 차감)"
+        action={<Button onClick={() => setOpen(true)}>+ 주문 등록</Button>}
+      />
 
-      <Card className="mb-4">
-        <CardHeader title="주문 등록" />
-        <CardBody>
-          <form onSubmit={create} className="space-y-3">
-            <Field label="거래처" className="max-w-xs">
-              <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)} required>
-                <option value="">거래처 선택</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </Select>
-            </Field>
-
-            <div className="space-y-2">
-              {lines.map((l, i) => (
-                <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_120px_auto]">
-                  <Select value={l.productId} onChange={(e) => setLine(i, "productId", e.target.value)}>
-                    <option value="">상품 선택</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name} ({won(p.basePrice)})</option>
-                    ))}
-                  </Select>
-                  <Input type="number" min={1} value={l.qty} onChange={(e) => setLine(i, "qty", e.target.value)} placeholder="수량" />
-                  <Button type="button" variant="ghost" size="sm"
-                    onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}
-                    disabled={lines.length === 1}>삭제</Button>
-                </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="주문 등록" className="max-w-xl">
+        <form onSubmit={create} className="space-y-3">
+          <Field label="거래처" className="max-w-xs">
+            <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)} required>
+              <option value="">거래처 선택</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
-              <Button type="button" variant="secondary" size="sm"
-                onClick={() => setLines((ls) => [...ls, { productId: "", qty: "1" }])}>+ 항목 추가</Button>
-            </div>
+            </Select>
+          </Field>
 
-            <Button type="submit">+ 주문 등록</Button>
-          </form>
-        </CardBody>
-      </Card>
+          <div className="space-y-2">
+            {lines.map((l, i) => (
+              <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_120px_auto]">
+                <Select value={l.productId} onChange={(e) => setLine(i, "productId", e.target.value)}>
+                  <option value="">상품 선택</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name} ({won(p.basePrice)})</option>
+                  ))}
+                </Select>
+                <Input type="number" min={1} value={l.qty} onChange={(e) => setLine(i, "qty", e.target.value)} placeholder="수량" />
+                <Button type="button" variant="ghost" size="sm"
+                  onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}
+                  disabled={lines.length === 1}>삭제</Button>
+              </div>
+            ))}
+            <Button type="button" variant="secondary" size="sm"
+              onClick={() => setLines((ls) => [...ls, { productId: "", qty: "1" }])}>+ 항목 추가</Button>
+          </div>
+
+          <div className="mt-1 flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={busy}>취소</Button>
+            <Button type="submit" disabled={busy}>{busy ? "등록 중…" : "+ 주문 등록"}</Button>
+          </div>
+        </form>
+      </Modal>
 
       {err && (
         <Card className="mb-4 border-st-danger/40">

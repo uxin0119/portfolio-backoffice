@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/badge";
 import { Field, Input } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
+import { Modal } from "@/components/ui/modal";
 import { api, won } from "@/lib/api";
 import { productImageUrl } from "@/lib/img";
 
@@ -26,14 +27,15 @@ type Product = {
 
 const EMPTY = { sku: "", name: "", category: "", basePrice: "", stockQty: "", safetyStock: "" };
 
-// 폼을 분리 → 키 입력이 큰 목록(DataTable)을 리렌더하지 않음
-function ProductForm({ onCreated }: { onCreated: () => void }) {
+function ProductForm({ onCreated, onCancel }: { onCreated: () => void; onCancel: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
+  const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function create(e: FormEvent) {
     e.preventDefault();
+    setBusy(true);
     try {
       await api("/api/products", {
         method: "POST",
@@ -50,30 +52,31 @@ function ProductForm({ onCreated }: { onCreated: () => void }) {
       onCreated();
     } catch (e) {
       alert("등록 실패: " + e);
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <Card className="mb-4">
-      <CardHeader title="상품 등록" />
-      <CardBody>
-        <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="SKU"><Input value={form.sku} onChange={set("sku")} required /></Field>
-          <Field label="상품명"><Input value={form.name} onChange={set("name")} required /></Field>
-          <Field label="카테고리"><Input value={form.category} onChange={set("category")} /></Field>
-          <Field label="기준가(원)"><Input type="number" value={form.basePrice} onChange={set("basePrice")} /></Field>
-          <Field label="재고수량"><Input type="number" value={form.stockQty} onChange={set("stockQty")} /></Field>
-          <Field label="안전재고"><Input type="number" value={form.safetyStock} onChange={set("safetyStock")} /></Field>
-          <div className="sm:col-span-2 lg:col-span-3"><Button type="submit">+ 등록</Button></div>
-        </form>
-      </CardBody>
-    </Card>
+    <form onSubmit={create} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <Field label="SKU"><Input value={form.sku} onChange={set("sku")} required autoFocus /></Field>
+      <Field label="상품명"><Input value={form.name} onChange={set("name")} required /></Field>
+      <Field label="카테고리"><Input value={form.category} onChange={set("category")} /></Field>
+      <Field label="기준가(원)"><Input type="number" value={form.basePrice} onChange={set("basePrice")} /></Field>
+      <Field label="재고수량"><Input type="number" value={form.stockQty} onChange={set("stockQty")} /></Field>
+      <Field label="안전재고"><Input type="number" value={form.safetyStock} onChange={set("safetyStock")} /></Field>
+      <div className="mt-1 flex justify-end gap-2 sm:col-span-2">
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={busy}>취소</Button>
+        <Button type="submit" disabled={busy}>{busy ? "등록 중…" : "+ 등록"}</Button>
+      </div>
+    </form>
   );
 }
 
 export default function ProductsPage() {
   const [items, setItems] = useState<Product[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -124,9 +127,21 @@ export default function ProductsPage() {
 
   return (
     <AppShell>
-      <PageHeader title="상품" desc="재고 상품 목록 및 등록" />
+      <PageHeader
+        title="상품"
+        desc="재고 상품 목록 및 등록"
+        action={<Button onClick={() => setOpen(true)}>+ 상품 등록</Button>}
+      />
 
-      <ProductForm onCreated={load} />
+      <Modal open={open} onClose={() => setOpen(false)} title="상품 등록">
+        <ProductForm
+          onCreated={() => {
+            setOpen(false);
+            load();
+          }}
+          onCancel={() => setOpen(false)}
+        />
+      </Modal>
 
       {err && (
         <Card className="mb-4 border-st-danger/40">

@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
+import { Modal } from "@/components/ui/modal";
 import { api } from "@/lib/api";
 
 type Tx = {
@@ -22,8 +23,9 @@ type Product = { id: number; name: string };
 
 const EMPTY = { productId: "", type: "IN", qty: "", memo: "" };
 
-function InventoryForm({ products, onCreated }: { products: Product[]; onCreated: () => void }) {
+function InventoryForm({ products, onCreated, onCancel }: { products: Product[]; onCreated: () => void; onCancel: () => void }) {
   const [form, setForm] = useState({ ...EMPTY });
+  const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -33,6 +35,7 @@ function InventoryForm({ products, onCreated }: { products: Product[]; onCreated
       alert("상품과 수량을 입력하세요.");
       return;
     }
+    setBusy(true);
     try {
       await api("/api/inventory/adjust", {
         method: "POST",
@@ -47,32 +50,32 @@ function InventoryForm({ products, onCreated }: { products: Product[]; onCreated
       onCreated();
     } catch (e) {
       alert("입출고 실패(재고 부족 등): " + e);
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <Card className="mb-4">
-      <CardHeader title="입출고 등록" />
-      <CardBody>
-        <form onSubmit={adjust} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="상품">
-            <Select value={form.productId} onChange={set("productId")} required>
-              <option value="">상품 선택</option>
-              {products.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
-            </Select>
-          </Field>
-          <Field label="유형">
-            <Select value={form.type} onChange={set("type")}>
-              <option value="IN">입고(IN)</option>
-              <option value="OUT">출고(OUT)</option>
-            </Select>
-          </Field>
-          <Field label="수량"><Input type="number" min={1} value={form.qty} onChange={set("qty")} /></Field>
-          <Field label="메모"><Input value={form.memo} onChange={set("memo")} /></Field>
-          <div className="sm:col-span-2 lg:col-span-4"><Button type="submit">+ 등록</Button></div>
-        </form>
-      </CardBody>
-    </Card>
+    <form onSubmit={adjust} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <Field label="상품">
+        <Select value={form.productId} onChange={set("productId")} required>
+          <option value="">상품 선택</option>
+          {products.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+        </Select>
+      </Field>
+      <Field label="유형">
+        <Select value={form.type} onChange={set("type")}>
+          <option value="IN">입고(IN)</option>
+          <option value="OUT">출고(OUT)</option>
+        </Select>
+      </Field>
+      <Field label="수량"><Input type="number" min={1} value={form.qty} onChange={set("qty")} /></Field>
+      <Field label="메모"><Input value={form.memo} onChange={set("memo")} /></Field>
+      <div className="mt-1 flex justify-end gap-2 sm:col-span-2">
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={busy}>취소</Button>
+        <Button type="submit" disabled={busy}>{busy ? "처리 중…" : "+ 등록"}</Button>
+      </div>
+    </form>
   );
 }
 
@@ -80,6 +83,7 @@ export default function InventoryPage() {
   const [txs, setTxs] = useState<Tx[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -111,9 +115,22 @@ export default function InventoryPage() {
 
   return (
     <AppShell>
-      <PageHeader title="재고" desc="입출고 등록 및 이력" />
+      <PageHeader
+        title="재고"
+        desc="입출고 등록 및 이력"
+        action={<Button onClick={() => setOpen(true)}>+ 입출고 등록</Button>}
+      />
 
-      <InventoryForm products={products} onCreated={load} />
+      <Modal open={open} onClose={() => setOpen(false)} title="입출고 등록">
+        <InventoryForm
+          products={products}
+          onCreated={() => {
+            setOpen(false);
+            load();
+          }}
+          onCancel={() => setOpen(false)}
+        />
+      </Modal>
 
       {err && (
         <Card className="mb-4 border-st-danger/40">
