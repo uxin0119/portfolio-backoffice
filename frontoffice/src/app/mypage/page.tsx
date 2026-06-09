@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
+import { ROLE_LABEL } from "@/lib/roles";
 import { api, won } from "@/lib/api";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -192,8 +193,15 @@ export default function MyPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="mb-1 text-xl font-bold text-fg">마이페이지</h1>
-      <p className="mb-5 text-sm text-subtle">{member.name}님, 반가워요</p>
+      <div className="mb-5 flex items-center gap-2">
+        <h1 className="text-xl font-bold text-fg">마이페이지</h1>
+        {member.role && (
+          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-subtle">
+            {ROLE_LABEL[member.role] ?? member.role}
+          </span>
+        )}
+      </div>
+      <p className="-mt-3 mb-5 text-sm text-subtle">{member.name}님, 반가워요</p>
 
       <div className="mb-5 inline-flex rounded-lg border border-line p-1 text-sm">
         <button

@@ -27,11 +27,11 @@ public class AuthController {
   public record LoginReq(String loginId, String password) {}
 
   public record AuthRes(
-      Long id, String loginId, String name, String token,
+      Long id, String loginId, String name, String token, String role,
       String email, String phone, String postcode, String address, String addressDetail) {
     static AuthRes of(Member m) {
       return new AuthRes(
-          m.getId(), m.getLoginId(), m.getName(), "m_" + m.getId(),
+          m.getId(), m.getLoginId(), m.getName(), "m_" + m.getId(), m.getRole(),
           m.getEmail(), m.getPhone(), m.getPostcode(), m.getAddress(), m.getAddressDetail());
     }
   }

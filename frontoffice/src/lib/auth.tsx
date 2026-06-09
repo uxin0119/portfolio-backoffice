@@ -14,6 +14,7 @@ export type Member = {
   loginId: string;
   name: string;
   token: string;
+  role?: string;
   email?: string | null;
   phone?: string | null;
   postcode?: string | null;

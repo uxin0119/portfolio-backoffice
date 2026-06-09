@@ -5,15 +5,17 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/input";
+import { Field, Input, Select } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
 import { Modal } from "@/components/ui/modal";
+import { ROLE_LABEL, ROLE_OPTIONS } from "@/lib/roles";
 import { api } from "@/lib/api";
 
 type Member = {
   id: number;
   loginId: string;
   name: string;
+  role?: string;
   createdAt?: string;
   email?: string | null;
   phone?: string | null;
@@ -97,6 +99,15 @@ export default function MembersPage() {
     load();
   }
 
+  async function changeRole(id: number, role: string) {
+    try {
+      await api(`/api/members/${id}/role`, { method: "PATCH", body: JSON.stringify({ role }) });
+      load();
+    } catch (e) {
+      alert("역할 변경 실패: " + e);
+    }
+  }
+
   const fullAddress = (m: Member) =>
     [m.postcode ? `(${m.postcode})` : "", m.address ?? "", m.addressDetail ?? ""]
       .filter(Boolean)
@@ -107,6 +118,14 @@ export default function MembersPage() {
     { key: "id", header: "ID", align: "right", sortValue: (m) => m.id },
     { key: "loginId", header: "아이디", sortValue: (m) => m.loginId, render: (m) => <span className="font-medium text-fg">{m.loginId}</span> },
     { key: "name", header: "이름", sortValue: (m) => m.name },
+    {
+      key: "role", header: "역할", sortValue: (m) => m.role ?? "",
+      render: (m) => (
+        <Select className="h-8 w-28" value={m.role ?? "BUYER"} onChange={(e) => changeRole(m.id, e.target.value)}>
+          {ROLE_OPTIONS.map((r) => (<option key={r} value={r}>{ROLE_LABEL[r]}</option>))}
+        </Select>
+      ),
+    },
     { key: "email", header: "이메일", render: (m) => <span className="text-subtle">{m.email || "-"}</span> },
     { key: "phone", header: "전화번호", render: (m) => <span className="text-subtle tabular-nums">{m.phone || "-"}</span> },
     { key: "address", header: "주소", render: (m) => <span className="text-subtle">{fullAddress(m) || "-"}</span> },

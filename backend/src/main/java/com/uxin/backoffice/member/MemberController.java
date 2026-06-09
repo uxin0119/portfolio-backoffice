@@ -22,19 +22,24 @@ public class MemberController {
     this.repo = repo;
   }
 
+  static final java.util.Set<String> ROLES = java.util.Set.of("SUPER_ADMIN", "ADMIN", "SELLER", "BUYER");
+
   public record MemberRes(
-      Long id, String loginId, String name, String createdAt,
+      Long id, String loginId, String name, String createdAt, String role,
       String email, String phone, String postcode, String address, String addressDetail) {
     static MemberRes of(Member m) {
       return new MemberRes(
           m.getId(), m.getLoginId(), m.getName(),
-          m.getCreatedAt() == null ? null : m.getCreatedAt().toString(),
+          m.getCreatedAt() == null ? null : m.getCreatedAt().toString(), m.getRole(),
           m.getEmail(), m.getPhone(), m.getPostcode(), m.getAddress(), m.getAddressDetail());
     }
   }
 
   /** 마이페이지 프로필 수정 — 연락처/주소만(아이디·비밀번호·이름 제외). */
   public record UpdateReq(String email, String phone, String postcode, String address, String addressDetail) {}
+
+  /** 역할 변경(백오피스 관리자용). */
+  public record RoleReq(String role) {}
 
   private static String trimToNull(String s) {
     return (s == null || s.isBlank()) ? null : s.trim();
@@ -65,6 +70,17 @@ public class MemberController {
     m.setPostcode(trimToNull(r.postcode()));
     m.setAddress(trimToNull(r.address()));
     m.setAddressDetail(trimToNull(r.addressDetail()));
+    repo.save(m);
+    return MemberRes.of(m);
+  }
+
+  @PatchMapping("/{id}/role")
+  public MemberRes updateRole(@PathVariable Long id, @RequestBody RoleReq r) {
+    if (r.role() == null || !ROLES.contains(r.role())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 역할");
+    }
+    Member m = repo.findById(id).orElseThrow();
+    m.setRole(r.role());
     repo.save(m);
     return MemberRes.of(m);
   }

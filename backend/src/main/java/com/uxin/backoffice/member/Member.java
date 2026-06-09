@@ -26,6 +26,10 @@ public class Member {
   @Column(nullable = false)
   private String name;
 
+  // 역할: SUPER_ADMIN / ADMIN / SELLER / BUYER (기본 BUYER)
+  @Column(nullable = false)
+  private String role = "BUYER";
+
   // 주문·배송용 연락처/주소 (가입 시 선택 입력, 기존 회원 호환 위해 nullable)
   @Column private String email;
 
@@ -44,5 +48,6 @@ public class Member {
   @PrePersist
   void prePersist() {
     if (createdAt == null) createdAt = OffsetDateTime.now();
+    if (role == null) role = "BUYER";
   }
 }

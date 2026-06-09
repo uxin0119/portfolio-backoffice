@@ -18,10 +18,15 @@ export default function LoginPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      const m = await api<{ token: string; name: string }>("/api/auth/login", {
+      const m = await api<{ token: string; name: string; role?: string }>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ loginId, password }),
       });
+      if (m.role === "BUYER") {
+        alert("백오피스 접근 권한이 없습니다. (구매자 계정)");
+        setBusy(false);
+        return;
+      }
       try {
         localStorage.setItem("bo_auth", JSON.stringify(m));
       } catch {}

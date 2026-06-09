@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { NAV } from "@/lib/nav";
+import { currentRole } from "@/lib/roles";
 import { cn } from "@/lib/cn";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,19 @@ import { IconLogout, IconMenu } from "@/components/icons";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+
+  // 진입 가드: 구매자(BUYER)는 백오피스 접근 차단. (역할 없으면 레거시/우회 허용)
+  useEffect(() => {
+    const r = currentRole();
+    setRole(r);
+    if (r === "BUYER") router.replace("/login");
+  }, [router]);
+
+  // 역할별 메뉴 필터(역할 미확인 시 전체 표시 → 깜빡임/락아웃 방지)
+  const navItems = NAV.filter((n) => !role || (n.roles as readonly string[]).includes(role));
 
   function logout() {
     try {
@@ -40,7 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 space-y-1 p-3">
-          {NAV.map(({ href, label, Icon }) => {
+          {navItems.map(({ href, label, Icon }) => {
             const active =
               href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (
