@@ -8,6 +8,10 @@ import { buttonClass } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { ProductCard, type Product } from "@/components/product-card";
 
+// 백오피스(관리자)는 별도 배포라 외부 링크. 필요 시 env로 override.
+const BACKOFFICE_URL =
+  process.env.NEXT_PUBLIC_BACKOFFICE_URL ?? "https://portfolio-backoffice-pi.vercel.app";
+
 const PROMOS = [
   { emoji: "🎁", title: "신규가입 10% 쿠폰", desc: "지금 가입하고 첫 주문 할인받기" },
   { emoji: "🚚", title: "3만원 이상 무료배송", desc: "생활잡화 한 번에 채우기" },
@@ -32,7 +36,15 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-5xl space-y-10 px-4 py-6">
       {/* 히어로(광고영역) */}
-      <section className="overflow-hidden rounded-2xl bg-primary px-6 py-12 text-primary-fg sm:px-10 sm:py-16">
+      <section className="relative overflow-hidden rounded-2xl bg-primary px-6 py-12 text-primary-fg sm:px-10 sm:py-16">
+        <a
+          href={BACKOFFICE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-primary-fg backdrop-blur hover:bg-white/25"
+        >
+          🛠 백오피스 이동 →
+        </a>
         <p className="text-sm font-medium opacity-80">생활잡화 스토어</p>
         <h1 className="mt-2 max-w-xl text-2xl font-bold leading-snug sm:text-4xl">
           매일 쓰는 생활잡화,<br />가볍게 채우세요
