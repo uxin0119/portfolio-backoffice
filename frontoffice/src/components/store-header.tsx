@@ -5,14 +5,17 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { IconOrder } from "@/components/icons";
-
-// 백오피스(관리자)는 별도 배포라 외부 링크. NEXT_PUBLIC_BACKOFFICE_URL로 override 가능.
-const BACKOFFICE_URL =
-  process.env.NEXT_PUBLIC_BACKOFFICE_URL ?? "https://portfolio-backoffice-pi.vercel.app";
+import { useCounterpartUrl } from "@/lib/app-link";
 
 export function StoreHeader() {
   const { count } = useCart();
   const { member, logout } = useAuth();
+  // 로컬이면 localhost:3000(백오피스), 배포면 Vercel URL. NEXT_PUBLIC_BACKOFFICE_URL이 있으면 그걸 우선.
+  const boUrl = useCounterpartUrl(
+    process.env.NEXT_PUBLIC_BACKOFFICE_URL,
+    "https://portfolio-backoffice-pi.vercel.app",
+    "3000",
+  );
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-surface/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
@@ -22,7 +25,7 @@ export function StoreHeader() {
         </Link>
         <nav className="ml-2 hidden items-center gap-1 text-sm sm:flex">
           <Link href="/products" className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">상품</Link>
-          <a href={BACKOFFICE_URL} target="_blank" rel="noreferrer" className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">🛠 백오피스</a>
+          <a href={boUrl} target="_blank" rel="noreferrer" className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">🛠 백오피스</a>
         </nav>
         <div className="flex-1" />
         <ThemeToggle />

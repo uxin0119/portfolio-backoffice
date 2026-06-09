@@ -10,14 +10,17 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { AdminFooter } from "@/components/admin-footer";
 import { IconLogout, IconMenu } from "@/components/icons";
-
-// 프론트오피스(소비자)는 별도 배포라 외부 링크. NEXT_PUBLIC_FRONTOFFICE_URL로 override 가능.
-const FRONTOFFICE_URL =
-  process.env.NEXT_PUBLIC_FRONTOFFICE_URL ?? "https://portfolio-frontoffice.vercel.app";
+import { useCounterpartUrl } from "@/lib/app-link";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<string | null>(null);
+  // 로컬이면 localhost:3001(프론트오피스), 배포면 Vercel URL. NEXT_PUBLIC_FRONTOFFICE_URL이 있으면 우선.
+  const foUrl = useCounterpartUrl(
+    process.env.NEXT_PUBLIC_FRONTOFFICE_URL,
+    "https://portfolio-frontoffice.vercel.app",
+    "3001",
+  );
   const pathname = usePathname();
   const router = useRouter();
 
@@ -108,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Button>
           <div className="flex-1" />
           <a
-            href={FRONTOFFICE_URL}
+            href={foUrl}
             target="_blank"
             rel="noreferrer"
             className="rounded-lg px-2 py-1 text-sm text-subtle hover:bg-surface-2 hover:text-fg"
