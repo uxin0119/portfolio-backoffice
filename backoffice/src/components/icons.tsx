@@ -84,6 +84,13 @@ export const IconLogout = (p: IconProps) => (
   </svg>
 );
 
+export const IconCode = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="m8 6-6 6 6 6" />
+    <path d="m16 6 6 6-6 6" />
+  </svg>
+);
+
 export const IconSettings = (p: IconProps) => (
   <svg {...base(p)}>
     <circle cx="12" cy="12" r="3" />
