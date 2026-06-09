@@ -10,6 +10,7 @@ import { StatusBadge, type StatusKey } from "@/components/ui/badge";
 import { Field, Select, Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { api, won } from "@/lib/api";
+import { useCodes } from "@/lib/codes";
 
 type Order = {
   id: number;
@@ -35,6 +36,11 @@ export default function OrdersPage() {
   const [busy, setBusy] = useState(false);
   const [customerId, setCustomerId] = useState("");
   const [lines, setLines] = useState<Line[]>([{ productId: "", qty: "1" }]);
+  const { label, options } = useCodes();
+
+  const statusOptions = options("ORDER_STATUS").length
+    ? options("ORDER_STATUS").map((c) => ({ value: c.code, text: c.name }))
+    : STATUSES.map((s) => ({ value: s, text: label("ORDER_STATUS", s, s) }));
 
   async function load() {
     try {
@@ -174,11 +180,11 @@ export default function OrdersPage() {
                   <td className="px-5 py-3 text-fg">{o.customerName}</td>
                   <td className="px-5 py-3 text-right tabular-nums text-fg">{won(o.totalAmount)}</td>
                   <td className="px-5 py-3 text-right tabular-nums text-subtle">{o.itemCount}</td>
-                  <td className="px-5 py-3"><StatusBadge status={o.status} /></td>
+                  <td className="px-5 py-3"><StatusBadge status={o.status} label={label("ORDER_STATUS", o.status)} /></td>
                   <td className="px-5 py-3">
                     <Select className="h-8 w-28" value={o.status}
                       onChange={(e) => changeStatus(o.id, e.target.value)}>
-                      {STATUSES.map((s) => (<option key={s} value={s}>{s}</option>))}
+                      {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.text}</option>))}
                     </Select>
                   </td>
                 </tr>

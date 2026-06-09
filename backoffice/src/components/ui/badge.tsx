@@ -16,7 +16,7 @@ const STATUS: Record<StatusKey, { label: string; cls: string }> = {
   LOW_STOCK: { label: "재고부족", cls: "bg-st-danger-bg text-st-danger" },
 };
 
-export function StatusBadge({ status }: { status: StatusKey }) {
+export function StatusBadge({ status, label }: { status: StatusKey; label?: string }) {
   const s = STATUS[status];
   return (
     <span
@@ -25,7 +25,7 @@ export function StatusBadge({ status }: { status: StatusKey }) {
         s.cls,
       )}
     >
-      {s.label}
+      {label ?? s.label}
     </span>
   );
 }

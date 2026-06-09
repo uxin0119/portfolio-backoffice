@@ -10,6 +10,7 @@ import { buttonClass } from "@/components/ui/button";
 import { StatusBadge, type StatusKey } from "@/components/ui/badge";
 import { Select } from "@/components/ui/input";
 import { api, won } from "@/lib/api";
+import { useCodes } from "@/lib/codes";
 
 type Item = {
   id: number;
@@ -42,6 +43,11 @@ export default function OrderDetailPage() {
   const id = params.id;
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const { label, options } = useCodes();
+
+  const statusOptions = options("ORDER_STATUS").length
+    ? options("ORDER_STATUS").map((c) => ({ value: c.code, text: c.name }))
+    : STATUSES.map((s) => ({ value: s, text: label("ORDER_STATUS", s, s) }));
 
   async function load() {
     try {
@@ -128,12 +134,12 @@ export default function OrderDetailPage() {
               <Row label="주문일" value={order.orderDate} />
               <div className="flex items-center justify-between">
                 <span className="text-subtle">상태</span>
-                <StatusBadge status={order.status} />
+                <StatusBadge status={order.status} label={label("ORDER_STATUS", order.status)} />
               </div>
               <div className="space-y-1 pt-2">
                 <span className="text-xs font-medium text-subtle">상태 변경 (발송 시 재고 자동 차감)</span>
                 <Select value={order.status} onChange={(e) => changeStatus(e.target.value)}>
-                  {STATUSES.map((s) => (<option key={s} value={s}>{s}</option>))}
+                  {statusOptions.map((s) => (<option key={s.value} value={s.value}>{s.text}</option>))}
                 </Select>
               </div>
             </CardBody>

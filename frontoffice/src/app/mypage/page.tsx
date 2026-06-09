@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/roles";
+import { useCodes } from "@/lib/codes";
 import { api, won } from "@/lib/api";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,7 @@ function ProfileTab() {
 
 function OrdersTab() {
   const { member } = useAuth();
+  const { label: codeLabel } = useCodes();
   const [orders, setOrders] = useState<MyOrder[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -140,7 +142,7 @@ function OrdersTab() {
                   <p className="font-semibold text-fg">{o.orderNo}</p>
                   <p className="text-xs text-subtle">{o.orderDate}</p>
                 </div>
-                <span className={`text-sm font-semibold ${st.cls}`}>{st.label}</span>
+                <span className={`text-sm font-semibold ${st.cls}`}>{codeLabel("ORDER_STATUS", o.status, st.label)}</span>
               </div>
 
               <div className="space-y-1 border-t border-line pt-2">
