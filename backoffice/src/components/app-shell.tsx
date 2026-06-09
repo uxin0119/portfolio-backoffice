@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button";
 import { AdminFooter } from "@/components/admin-footer";
 import { IconLogout, IconMenu } from "@/components/icons";
 
+// 프론트오피스(소비자)는 별도 배포라 외부 링크. NEXT_PUBLIC_FRONTOFFICE_URL로 override 가능.
+const FRONTOFFICE_URL =
+  process.env.NEXT_PUBLIC_FRONTOFFICE_URL ?? "https://portfolio-frontoffice.vercel.app";
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<string | null>(null);
@@ -103,6 +107,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <IconMenu />
           </Button>
           <div className="flex-1" />
+          <a
+            href={FRONTOFFICE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-lg px-2 py-1 text-sm text-subtle hover:bg-surface-2 hover:text-fg"
+          >
+            🛒 스토어
+          </a>
           <ThemeToggle />
           <div className="flex items-center gap-2 pl-1">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-surface-2 text-xs font-semibold text-fg">
