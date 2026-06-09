@@ -6,6 +6,10 @@ import { useAuth } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { IconOrder } from "@/components/icons";
 
+// 백오피스(관리자)는 별도 배포라 외부 링크. NEXT_PUBLIC_BACKOFFICE_URL로 override 가능.
+const BACKOFFICE_URL =
+  process.env.NEXT_PUBLIC_BACKOFFICE_URL ?? "https://portfolio-backoffice-pi.vercel.app";
+
 export function StoreHeader() {
   const { count } = useCart();
   const { member, logout } = useAuth();
@@ -18,6 +22,7 @@ export function StoreHeader() {
         </Link>
         <nav className="ml-2 hidden items-center gap-1 text-sm sm:flex">
           <Link href="/products" className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">상품</Link>
+          <a href={BACKOFFICE_URL} target="_blank" rel="noreferrer" className="rounded-lg px-2 py-1 text-subtle hover:bg-surface-2 hover:text-fg">🛠 백오피스</a>
         </nav>
         <div className="flex-1" />
         <ThemeToggle />
