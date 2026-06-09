@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
 import { Modal } from "@/components/ui/modal";
+import { confirm } from "@/components/ui/feedback";
 import { ROLE_LABEL, ROLE_OPTIONS } from "@/lib/roles";
 import { api } from "@/lib/api";
 
@@ -94,7 +95,7 @@ export default function MembersPage() {
   }, [load]);
 
   async function remove(id: number) {
-    if (!confirm("삭제할까요?")) return;
+    if (!(await confirm("삭제할까요?"))) return;
     await api(`/api/members/${id}`, { method: "DELETE" });
     load();
   }

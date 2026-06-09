@@ -1,9 +1,8 @@
-import type {
-  InputHTMLAttributes,
-  SelectHTMLAttributes,
-  ReactNode,
-} from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
+
+// 네이티브 <select> 대체 커스텀 드롭다운(동일 API).
+export { Select } from "./select";
 
 const fieldCls =
   "h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg " +
@@ -14,18 +13,6 @@ export function Input({
   ...props
 }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(fieldCls, className)} {...props} />;
-}
-
-export function Select({
-  className,
-  children,
-  ...props
-}: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select className={cn(fieldCls, className)} {...props}>
-      {children}
-    </select>
-  );
 }
 
 export function Field({

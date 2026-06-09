@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
 import { Modal } from "@/components/ui/modal";
+import { confirm } from "@/components/ui/feedback";
 import { api } from "@/lib/api";
 
 type Code = {
@@ -131,7 +132,7 @@ export default function CodesPage() {
   const filtered = items.filter((c) => !group || c.groupCode === group);
 
   async function remove(c: Code) {
-    if (!confirm(`'${c.name}'(${c.code}) 삭제할까요?`)) return;
+    if (!(await confirm(`'${c.name}'(${c.code}) 삭제할까요?`))) return;
     await api(`/api/codes/${c.id}`, { method: "DELETE" });
     load();
   }

@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import { StoreHeader } from "@/components/store-header";
 import { StoreFooter } from "@/components/store-footer";
+import { Toaster, ConfirmHost } from "@/components/ui/feedback";
 
 export const metadata: Metadata = {
   title: "생활잡화 스토어",
@@ -36,6 +37,8 @@ export default function RootLayout({
             <StoreFooter />
           </CartProvider>
         </AuthProvider>
+        <Toaster />
+        <ConfirmHost />
       </body>
     </html>
   );

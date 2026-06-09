@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
 import { DataTable, type Column } from "@/components/ui/table";
 import { Modal } from "@/components/ui/modal";
+import { confirm } from "@/components/ui/feedback";
 import { api } from "@/lib/api";
 
 type Customer = {
@@ -80,7 +81,7 @@ export default function CustomersPage() {
   }, [load]);
 
   async function remove(id: number) {
-    if (!confirm("삭제할까요?")) return;
+    if (!(await confirm("삭제할까요?"))) return;
     await api(`/api/customers/${id}`, { method: "DELETE" });
     load();
   }
