@@ -5,6 +5,19 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { StatusBadge, type StatusKey } from "@/components/ui/badge";
+import {
+  RevenueAreaChart,
+  CategoryDonut,
+  OrderHeatmap,
+  StatusStackBar,
+  StockGauges,
+  type DailyPoint,
+  type CategorySlice,
+  type HeatCell,
+  type StatusCount,
+  type StockHealth,
+} from "@/components/ui/charts";
+import { useCodes } from "@/lib/codes";
 import { api, won } from "@/lib/api";
 
 type Dashboard = {
@@ -30,14 +43,25 @@ type Dashboard = {
   }[];
 };
 
+type Stats = {
+  dailyRevenue: DailyPoint[];
+  categorySales: CategorySlice[];
+  orderHeatmap: HeatCell[];
+  statusCounts: StatusCount[];
+  stockHealth: StockHealth[];
+};
+
 export default function DashboardPage() {
   const [data, setData] = useState<Dashboard | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const { label } = useCodes();
 
   useEffect(() => {
     api<Dashboard>("/api/dashboard")
       .then(setData)
       .catch((e) => setErr(String(e)));
+    api<Stats>("/api/stats/dashboard").then(setStats).catch(() => {});
   }, []);
 
   const kpis = [
@@ -76,6 +100,40 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {stats && (
+        <>
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader title="최근 30일 매출 추이" />
+              <CardBody>
+                <RevenueAreaChart data={stats.dailyRevenue} />
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader title="카테고리별 매출" />
+              <CardBody>
+                <CategoryDonut data={stats.categorySales} />
+              </CardBody>
+            </Card>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader title="주문 발생 히트맵 (요일 × 시간대)" />
+              <CardBody>
+                <OrderHeatmap data={stats.orderHeatmap} />
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader title="주문 상태 분포" />
+              <CardBody>
+                <StatusStackBar data={stats.statusCounts} label={(c) => label("ORDER_STATUS", c)} />
+              </CardBody>
+            </Card>
+          </div>
+        </>
+      )}
+
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="최근 주문" />
@@ -107,22 +165,25 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader title="재고 부족" action={<StatusBadge status="LOW_STOCK" />} />
-          <CardBody className="space-y-3">
-            {data?.lowStock.map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-fg">{p.name}</p>
-                  <p className="text-xs text-subtle">{p.sku}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-st-danger tabular-nums">{p.stockQty}</p>
-                  <p className="text-xs text-subtle tabular-nums">안전 {p.safetyStock}</p>
-                </div>
+          <CardHeader title="재고 건강도" action={<StatusBadge status="LOW_STOCK" />} />
+          <CardBody>
+            {stats ? (
+              <StockGauges data={stats.stockHealth} />
+            ) : (
+              <div className="space-y-3">
+                {data?.lowStock.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-fg">{p.name}</p>
+                      <p className="text-xs text-subtle">{p.sku}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-st-danger tabular-nums">{p.stockQty}</p>
+                      <p className="text-xs text-subtle tabular-nums">안전 {p.safetyStock}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-            {data && data.lowStock.length === 0 && (
-              <p className="py-6 text-center text-sm text-subtle">부족 상품 없음</p>
             )}
           </CardBody>
         </Card>
