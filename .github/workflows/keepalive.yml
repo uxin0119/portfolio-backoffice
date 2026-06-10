@@ -1,0 +1,30 @@
+# Supabase 무료 프로젝트는 7일간 요청이 없으면 일시정지(수동 해제 필요).
+# 6일 간격으로 백엔드를 깨워 DB 쿼리를 발생시켜 휴면을 방지한다.
+# (백엔드 콜드스타트 UX는 프론트의 재시도+배너가 담당 — 이 핑은 상시 가동용이 아님)
+name: keepalive
+
+on:
+  schedule:
+    # 매월 1,7,13,19,25,31일 12:00 KST(03:00 UTC) — 어떤 달이든 간격 ≤ 6일
+    - cron: "0 3 */6 * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake backend (cold start may take ~1min)
+        run: |
+          B=https://portfolio-backoffice-50wb.onrender.com
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$B/actuator/health" || true)
+            echo "health try $i -> $code"
+            [ "$code" = "200" ] && break
+            sleep 20
+          done
+          [ "$code" = "200" ] || { echo "backend did not wake"; exit 1; }
+      - name: Touch DB (real query keeps Supabase active)
+        run: |
+          B=https://portfolio-backoffice-50wb.onrender.com
+          curl -sf --max-time 60 "$B/api/products" -o /dev/null
+          echo "DB query OK"
