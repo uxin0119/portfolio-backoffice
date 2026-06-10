@@ -37,8 +37,10 @@ export function RevenueAreaChart({ data }: { data: DailyPoint[] }) {
       const [x1, y1] = pts[i];
       const [x2, y2] = pts[i + 1];
       const [x3, y3] = pts[Math.min(pts.length - 1, i + 2)];
-      const c1x = x1 + (x2 - x0) / 6, c1y = y1 + (y2 - y0) / 6;
-      const c2x = x2 - (x3 - x1) / 6, c2y = y2 - (y3 - y1) / 6;
+      // 제어점 Y를 차트 범위로 클램프 — 0 구간에서 기준선 아래로 파고드는 오버슈트 방지
+      const clampY = (v: number) => Math.min(H - PY, Math.max(PY, v));
+      const c1x = x1 + (x2 - x0) / 6, c1y = clampY(y1 + (y2 - y0) / 6);
+      const c2x = x2 - (x3 - x1) / 6, c2y = clampY(y2 - (y3 - y1) / 6);
       p += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
     }
     return p;
