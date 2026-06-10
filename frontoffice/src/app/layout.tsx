@@ -5,6 +5,7 @@ import { CartProvider } from "@/lib/cart";
 import { StoreHeader } from "@/components/store-header";
 import { StoreFooter } from "@/components/store-footer";
 import { Toaster, ConfirmHost } from "@/components/ui/feedback";
+import { WakeBanner } from "@/components/ui/wake-banner";
 
 export const metadata: Metadata = {
   title: "생활잡화 스토어",
@@ -39,6 +40,7 @@ export default function RootLayout({
         </AuthProvider>
         <Toaster />
         <ConfirmHost />
+        <WakeBanner />
       </body>
     </html>
   );

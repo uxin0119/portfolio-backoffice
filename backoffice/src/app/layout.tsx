@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster, ConfirmHost } from "@/components/ui/feedback";
+import { WakeBanner } from "@/components/ui/wake-banner";
 
 export const metadata: Metadata = {
   title: "포트폴리오 백오피스",
@@ -30,6 +31,7 @@ export default function RootLayout({
         {children}
         <Toaster />
         <ConfirmHost />
+        <WakeBanner />
       </body>
     </html>
   );
